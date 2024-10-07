@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "Wenn Sie diese Software verwenden, zitieren Sie bitte wie folgt:"
+title: "Nutztier-Pedigree-Generator"
+version: 1.0.0
+authors:
+  - family-names: "Mielke"
+    given-names: "Simon"
+date-released: 2024-10-07
+url: "https://github.com/SystemSourcer/Nutztier-Pedigree-Generator"
+license: "MIT"
