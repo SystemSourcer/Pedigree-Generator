@@ -16,8 +16,16 @@ Willkommen zum Nutztier-Pedigree-Generator! Dieses Projekt bietet ein Werkzeug z
    cd Nutztier-Pedigree-Generator
    ```
 
-2. **Abhängigkeiten installieren**
-   - Stelle sicher, dass Python 3.12 installiert ist.
+  
+
+2. **Abhängigkeiten installieren (automatisch)**
+   -Bisher noch nicht implementiert
+
+3. **Abhängigkeiten installieren (manuell)**
+   - Stelle sicher, dass Python 3.12 installiert ist oder installieren sie es z.B. mit winegt:
+   ```bash
+   winget install -e --id Python.Python.3.12 --scope machine
+   ```
    - Installiere die notwendigen Python-Pakete:
    ```bash
    pip install -r requirements.txt
@@ -25,12 +33,14 @@ Willkommen zum Nutztier-Pedigree-Generator! Dieses Projekt bietet ein Werkzeug z
 
 ## Verwendung
 
-1. **Starten der Anwendung**
+1. **Starten der Anwendung durch Klicken oder über die Komandozeile / Powershell mit:**
    ```bash
    python pedigree.py
    ```
 
-2. Wähle in den CSV-File aus der als Datengrunlage für das Pedigree dienen soll.
+2. Navigieren im sich öffnenden Fnester zum CSV-File, der als Datengrunlage für das Pedigree dienen soll.
+3. Geben sie den Namen des Tieres ein, dessen Pedigree erzeugt werdem soll.
+4. Geben sie an über wie viele Generationen das Pedigree erzeugt werden soll.
 
 ## Lizenz
 
