@@ -11,12 +11,13 @@ Willkommen zum Nutztier-Pedigree-Generator! Dieses Projekt bietet ein Werkzeug z
 ## Installation
 
 1. **Repository klonen**
+   - Clonen sie die Repositoty oder downloaden sie diese als .zip-File.
    ```bash
    git clone https://github.com/DeinBenutzername/Nutztier-Pedigree-Generator.git
    cd Nutztier-Pedigree-Generator
    ```
-2. **Abhängigkeiten installieren **
-   - Stelle sicher, dass Python installiert ist oder installieren sie es z.B. mit winegt (getestet mit Python 3.12):
+3. **Abhängigkeiten installieren**
+   - Stellen sie sicher, dass Python installiert ist oder installieren sie es z.B. mit winegt (getestet mit Python 3.12). Öffnen sie dazu die Powershell und führen sie folenden Befehl aus:
    ```bash
    winget install -e --id Python.Python.3.12 --scope machine --accept-package-agreements --accept-source-agreements
    ```
@@ -32,11 +33,11 @@ Willkommen zum Nutztier-Pedigree-Generator! Dieses Projekt bietet ein Werkzeug z
   Die Datei "example.csv" ist eine Beispieldatei, die zum Testen den Programms und zur Veranschaulichung der geforderten Datenstruktur dienen soll. 
 3. **Regeln**
    Folgende Regeln sind in der Datenbank einzuhalten, damit das Programm funktioniert:
-      1. Die ersten 6 Stalten müssen wie im Beispiel Name, Titel des Betriebs, Ohrmarkennummer, Geburtsdatum, die Bewertung und die Farbe enthalten (in dieser Reihenfolge).
+      1. Die ersten 6 Spalten müssen wie im Beispiel Name, Titel des Betriebs, Ohrmarkennummer, Geburtsdatum, die Bewertung und die Farbe enthalten (in dieser Reihenfolge).
       2. Die Namen der ersten 6 Spalten sind frei wählbar.
       3. Fehlt ein Eintrag in Spalte 2-6, ensteht darasu kein Fehler und das Pedigree wird ohne die fehlenden Informationen erstellt.
       4. Die Spalten "Vater" und "Mutter" müssen enthalten sein und auch genau so heißen. Es ist aber egal wo sie sich ab Spalte 7 befinden.
-      5. Es können ab Spalte 7 belibig viele weitere Spaltenenthalten sein, die nicht den titel "Vater" oder "Mutter" haben.
+      5. Es können ab Spalte 7 beliebig viele weitere Spalten enthalten sein, die nicht den Titel "Vater" oder "Mutter" haben.
       6. Der Name in den Spalten "Vater" oder "Mutter" muss mit dem Namen in der ersten Spalte der Zeile des entsprechenden Vater- oder Muttertiers exakt übereinstimmen (inklusive Leerzeichen vor und nach dem Name).
 
 ## Verwendung
