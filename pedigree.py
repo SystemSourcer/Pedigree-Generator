@@ -56,3 +56,51 @@ def generate_pedigree(ind, ngen): # Struktur des Pedigree erstellen
         pedigree["Generation "+str(gen)] = gen_list
     
     return pedigree,gen # Rückgabe fertiges Pedigree und der ursprünglichen Genrationenanzahl (rein formal)
+
+# Programmkern
+if __name__ == "__main__": # Nur ausführen wenn Program aufgerufen und nicht wenn importiert
+
+    csv_file = filedialog.askopenfilename(title="CSV-Datei als Datensatz auswählen", filetypes=[("CSV files", "*.csv")]) # CSV-File über GUI abfragen
+
+    df = pd.read_csv(csv_file, sep=";") # CSV-Fle einelsen
+    df = df.fillna(" ") # Leere Felder mit leerem String füllen
+
+    individuum = simpledialog.askstring("Tier","Name des Tiers für das ein Pedigree erstellt werden soll: ") # Tier für das Pedigree über GUI abfragen
+
+    if not any(df.Name == individuum): # Fehlermeldung wenn Tier nicht in Datenbank
+        messagebox.showerror("Fehler", "Tier " + individuum + " nicht in Datensatz vorhanden. Bitte Datensatz überprüfen.")
+        sys.exit()
+
+    n_gen = simpledialog.askinteger("Anzahl","Geben sie an wie viele Generationen das Pedigree beinhalten soll (1/2/3): ") # Anzahl der zu erstellenden Generationen über GUI abfragen
+
+    Pedigree,n_gen = generate_pedigree(individuum,n_gen) # Pedigree erstellen und n_gen überscheiben mit ANzahl generationen die auch komplett im Datensatz gefunden wurden
+    
+    if n_gen == 0: # Fehlermeldung wenn erste Generation, undmait auch kein Pedigree ertsellt werden kann.
+        messagebox.showerror("Fehler","Bereits die erste Generation konnte nicht vollstänig im Datensatz gefunden werden. Erstellung eines Pedigrees daher nicht möglich.")
+        sys.exit()
+
+    # Figru mit supplots erstellen (jeder Plot eine generation)
+    fig, ax = plt.subplots(1, n_gen, figsize=(16, 9))  # Eine Zeile, zwei Spalten
+
+    if n_gen == 1: # ax in array wandeln wenn nur eine Gen
+       ax = np.array([ax])
+
+    for gen in range(n_gen): # Für jede gen eine Spalte im Pedigree erzeugen
+
+        table1 = ax[gen].table(cellText=Pedigree.iloc[:,gen].values[Pedigree.iloc[:,gen].notna()].reshape(-1,1), cellLoc='center', loc='center') 
+        table1.auto_set_font_size(False)
+        table1.set_fontsize(10* 1.2 ** n_gen / (1.2**(gen+1))) # Schriftgröße an Generationenanzahl anpassen
+        table1.scale(1, 5 * 2 ** n_gen / (2**(gen+1)))  # Tabellengröße an Generationenanzahl anpassen
+        ax[gen].axis('off') # Axen ausblenden
+        ax[gen].set_title("Generation " + str(gen + 1)) # Titel für jede Spalte setzen
+
+
+
+    # Abstand zwischen den Tabellen einstellen
+    plt.subplots_adjust(wspace=0)  # Hier wird der horizontal Abstand zwischen den Subplots eingestellt
+
+    # Informationen des Individuums ausgeben.
+    fig.suptitle(individuum + " vom Hochwang" + ";    " + df[df.Name == individuum].LOM.values[0] + "\n\n" + "geb.  " + df[df.Name == individuum].Geb.values[0] + ";   " + "Farbe:  " + df[df.Name == individuum].Farbe.values[0])
+    
+    # Anzeigen des Pedigrees
+    plt.show()
