@@ -15,13 +15,10 @@ Willkommen zum Nutztier-Pedigree-Generator! Dieses Projekt bietet ein Werkzeug z
    git clone https://github.com/DeinBenutzername/Nutztier-Pedigree-Generator.git
    cd Nutztier-Pedigree-Generator
    ```
-2. **Abhängigkeiten installieren (automatisch)**
-   -Bisher noch nicht implementiert
-
-3. **Abhängigkeiten installieren (manuell)**
-   - Stelle sicher, dass Python 3.12 installiert ist oder installieren sie es z.B. mit winegt:
+2. **Abhängigkeiten installieren **
+   - Stelle sicher, dass Python installiert ist oder installieren sie es z.B. mit winegt (getestet mit Python 3.12):
    ```bash
-   winget install -e --id Python.Python.3.12 --scope machine
+   winget install -e --id Python.Python.3.12 --scope machine --accept-package-agreements --accept-source-agreements
    ```
    - Installiere die notwendigen Python-Pakete:
    ```bash
