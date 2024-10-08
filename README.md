@@ -27,7 +27,7 @@ Willkommen zum Nutztier-Pedigree-Generator! Dieses Projekt bietet ein Werkzeug z
 
 ## Datenbank
 1. **CSV**
-  Die Datenbak muss als CSV-Flie bereitgestellt werden. Dieser lässt sich ohne Probleme aus Excel, Libreoffice oder ähnlichen Programmen exportieren. Der Name der Datei ist dabei egal.
+  Die Datenbak muss als CSV-Flie mit Semikolon (;) als Trennzeien bereitgestellt werden. Dieser lässt sich ohne Probleme aus Excel, Libreoffice oder ähnlichen Programmen exportieren. Der Name der Datei ist dabei egal.
 2. **Beispieldatei**
   Die Datei "example.csv" ist eine Beispieldatei, die zum Testen den Programms und zur Veranschaulichung der geforderten Datenstruktur dienen soll. 
 3. **Regeln**
