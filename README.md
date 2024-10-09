@@ -42,7 +42,7 @@ Willkommen zum Nutztier-Pedigree-Generator! Dieses Projekt bietet ein Werkzeug z
 
 ## Verwendung
 
-1. **Starten der Anwendung durch Klicken oder über die Komandozeile / Powershell mit:**
+1. **Starten der Anwendung durch Klicken oder über die Kommandozeile / Powershell mit:**
    ```bash
    python pedigree.py
    ```
