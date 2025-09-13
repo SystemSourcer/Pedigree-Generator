@@ -11,7 +11,8 @@ from tkinter import simpledialog #
 # Functions
 def main(): # 
     '''
-    cpf-generated empty docstring.
+    The main function.
+    Asks the user for the Task.
     '''
     csv_path = Path(filedialog.askopenfilename(title='CSV-Datei als Datensatz auswählen', filetypes=[('CSV files', '*.csv')])) # CSV - File über GUI abfragen
     pg = PedGen(csv_path) # 
@@ -29,11 +30,13 @@ def main(): #
 # Objects
 class PedGen(): # 
     '''
-    cpf-generated empty docstring.
+    The Pedegree-Generator object class.
+    So to speak, the Gerneratir itself.
     '''
     def __init__(self, csv_path): # 
         '''
-        cpf-generated empty docstring.
+        Initializes the generator. 
+        Loads the csv file into a DataFrame and fills gaps with empty strings.
         '''
         self.csv_path = Path(csv_path) # 
         self.df = pd.read_csv(self.csv_path, sep=';') # CSV - Fle einelsen
@@ -41,7 +44,7 @@ class PedGen(): #
 
     def df_to_string(self, elter, ngen, gen): # Funktion um Datenbankwerte in String umzuwandeln
         '''
-        cpf - generated empty docstring.
+        Convert the data frame content into corresponding strings depending on the number of generations.
         '''
         if ngen == 3 and gen == 1: # Ausnahme wenn über 3 generationen und aktuell in 1. Generation
             return self.df.values[elter][0][0] + ' ' + str(self.df.values[elter][0][1]) + '\n' * 2 + self.df.values[elter][0][2] + ' ' * 3 + '\n' * 2 + 'Bew. ' + self.df.values[elter][0][4] + ' ' * 3 + 'Farbe: ' + self.df.values[elter][0][5] # 
@@ -50,7 +53,9 @@ class PedGen(): #
 
     def generate_pedigree(self): # Struktur des Pedigree erstellen
         '''
-        cpf-generated empty docstring.
+        Generates the pedigree. 
+        Requests the individual and the number of generations (supports 1, 2, or 3 generations). 
+        Also uses the function to calculate the IK.
         '''
         ind = simpledialog.askstring('Tier','Name des Tiers für das ein Pedigree erstellt werden soll: ') # Tier für das Pedigree über GUI abfragen
         if not any(self.df.Name==ind): # Fehlermeldung wenn Tier nicht in Datenbank
@@ -97,7 +102,8 @@ class PedGen(): #
 
     def plot_pedigree(self, ind, gen, ik, ped): # Figur mit supplots erstellen (jeder Plot eine generation)
         '''
-        cpf-generated empty docstring.
+        Converts the pedigree into a format that is understandable and clear to the user. 
+        The displayed plot can then be saved as a PDF or PNG file. 
         '''
         if gen == 0: # Fehlermeldung wenn erste Generation, undmait auch kein Pedigree ertsellt werden kann.
             messagebox.showerror('Fehler','Bereits die erste Generation konnte nicht vollstänig im Datensatz gefunden werden. Erstellung eines Pedigrees daher nicht möglich.') # 
@@ -122,7 +128,9 @@ class PedGen(): #
 
     def calc_inbreed(self,elter1,elter2): # 
         '''
-        cpf-generated empty docstring.
+        Calculates the inbreeding coefficient (IK).         
+        Calls itself recursively for this purpose.
+        Used by the function to generate the pedigree. Can also be called separately by the calc_full_Inbreed function.
         '''
         if not any(self.df.Name==elter1): return 0 # 
         if not any(self.df.Name==elter2): return 0 #
@@ -172,7 +180,7 @@ class PedGen(): #
 
     def calc_full_inbreed(self,): # 
         '''
-        cpf-generated empty docstring.
+        More or less a starter function to calculate the IK when it should be calculated separately without pedigree.
         '''
         elter1 = simpledialog.askstring('Elter 1','Name des ersten Elternteils für die Berechhnung des Inzuchtkoeffizienten: ') # 
         if not any(self.df.Name==elter1): # Fehlermeldung wenn Tier nicht in Datenbank
