@@ -15,16 +15,16 @@ def main(): #
     '''
     csv_path = Path(filedialog.askopenfilename(title='CSV-Datei als Datensatz auswählen', filetypes=[('CSV files', '*.csv')])) # CSV - File über GUI abfragen
     pg = PedGen(csv_path) # 
-    task = simpledialog.askstring('Anwendung','Geben sie PG ein um ein Pedigree zu generieren oder IZ um einen Inzuchtkoeefizient zu berechen.')
-    if task not in ('PG', 'IZ'): 
-        messagebox.showerror('Fehler', f'Bitte geben Sie PG ode IZ ein. Ihre eingabe wahr {task}.') # 
+    task = simpledialog.askstring('Anwendung','Geben sie "PG" ein um ein Pedigree zu generieren oder "IK" um einen Inzuchtkoeefizient zu berechen.')
+    if task not in ('PG', 'IK'): 
+        messagebox.showerror('Fehler', f'Bitte geben Sie PG ode IK ein. Ihre eingabe wahr {task}.') # 
         sys.exit() # 
 
     elif task == 'PG':
-        ind, gen, ped = pg.generate_pedigree() # 
-        pg.plot_pedigree(ind, gen, ped) # 
+        ind, gen, ik, ped = pg.generate_pedigree() # 
+        pg.plot_pedigree(ind, gen, ik, ped) # 
     
-    else: print(f'IZ = {pg.calc_full_inbreed()}')
+    else: print(f'IK = {pg.calc_full_inbreed()}')
 
 # Objects
 class PedGen(): # 
@@ -87,13 +87,15 @@ class PedGen(): #
 
                 gen_list.append('$\\bf{'+gen_str_list.pop(0)+'}$'+' '+self.df_to_string(mutter,n_gen,gen)) # 
 
+            if gen == 1: ik = self.calc_inbreed(self.df.Name[vater].values[0], self.df.Name[mutter].values[0])
+
             nk_list.clear() # Nachkommenliste leeren
             nk_list = v_m_list # Nachkomenliste mit nächster Genreration füllen.
             ped['Generation ' + str(gen)] = gen_list # 
 
-        return ind, gen, ped # 
+        return ind, gen, ik , ped # 
 
-    def plot_pedigree(self, ind, gen, ped): # Figur mit supplots erstellen (jeder Plot eine generation)
+    def plot_pedigree(self, ind, gen, ik, ped): # Figur mit supplots erstellen (jeder Plot eine generation)
         '''
         cpf-generated empty docstring.
         '''
@@ -106,15 +108,15 @@ class PedGen(): #
         for g in range(gen): # Für jede gen eine Spalte im Pedigree erzeugen
             table1 = ax[g].table(cellText=ped.iloc[:,g].values[ped.iloc[:,g].notna()].reshape(-1,1), cellLoc='center', loc='center') # 
             table1.auto_set_font_size(False) # 
-            table1.set_fontsize(10*1.2**g/(1.2**(g+1))) # Schriftgröße an Generationenanzahl anpassen
-            table1.scale(1, 5*2**g/(2**(g+1))) # Tabellengröße an Generationenanzahl anpassen
+            table1.set_fontsize(10*1.2**gen/(1.2**(g+1))) # Schriftgröße an Generationenanzahl anpassen
+            table1.scale(1, 5*2**gen/(2**(g+1))) # Tabellengröße an Generationenanzahl anpassen
             ax[g].axis('off') # Axen ausblenden
             ax[g].set_title('Generation '+str(g+1)) # Titel für jede Spalte setzen
 
         # Abstand zwischen den Tabellen einstellen
         plt.subplots_adjust(wspace=0) # Hier wird der horizontal Abstand zwischen den Subplots eingestellt
         # Informationen des Individuums ausgeben.
-        fig.suptitle(ind+' vom Hochwang'+'; '+self.df[self.df.Name==ind].LOM.values[0]+'\n\n'+'geb. '+self.df[self.df.Name==ind].Geb.values[0]+'; '+'Farbe: '+self.df[self.df.Name==ind].Farbe.values[0]) # 
+        fig.suptitle(f'{ind} vom Hochwang; {self.df[self.df.Name==ind].LOM.values[0]}\ngeb. {self.df[self.df.Name==ind].Geb.values[0]};{8*' '}Farbe: {self.df[self.df.Name==ind].Farbe.values[0]};{8*' '}IK = {ik}') # 
         # Anzeigen des Pedigrees
         plt.show() # 
 
@@ -124,7 +126,7 @@ class PedGen(): #
         '''
         if not any(self.df.Name==elter1): return 0 # 
         if not any(self.df.Name==elter2): return 0 #
-        print(f'IZ wird für Nachkomme von {elter1} mit {elter2} berechnent.') 
+        print(f'IK wird für Nachkomme von {elter1} mit {elter2} berechnent.') 
         elter1_anc_list = [{'Name':elter1, 'Num_Gen': 0}] # 
         elter2_anc_list = [{'Name':elter2, 'Num_Gen': 0}] # 
         for anc in elter1_anc_list: # 
