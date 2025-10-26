@@ -25,7 +25,10 @@ def main(): #
         ind, gen, ik, ped = pg.generate_pedigree() # 
         pg.plot_pedigree(ind, gen, ik, ped) # 
     
-    else: print(f'IK = {pg.calc_full_inbreed()}')
+    else: 
+        ik = pg.calc_full_inbreed()
+        print(f'IK = {ik}')
+        messagebox.showinfo('IK', f'IK = {ik}')     
 
 # Objects
 class PedGen(): # 
@@ -140,27 +143,31 @@ class PedGen(): #
         if not any(self.df.Name==elter1): return 0  # 
         if not any(self.df.Name==elter2): return 0 #
         print(f'\033[36mIK wird für Nachkomme von {elter1} mit {elter2} berechnent.\033[0m') 
-        elter1_anc_list = [{'Name':elter1, 'Num_Gen':0, 'desc':set() }] # 
-        elter2_anc_list = [{'Name':elter2, 'Num_Gen':0, 'desc':set() }] # 
+        elter1_anc_list = [{'Name':elter1, 'Num_Gen':0, 'desc':set()}] # 
+        elter2_anc_list = [{'Name':elter2, 'Num_Gen':0, 'desc':set()}] # 
         for anc in elter1_anc_list: # 
             ind = anc['Name'] # 
             num_gen = anc['Num_Gen'] #
-            desc = anc['desc'] #
+            desc = anc['desc'].copy()
+            desc.add(ind) # 
             vater = self.df.Name == self.df[self.df.Name == str(ind)].Vater.values[0] # 
-            if any(vater): elter1_anc_list.append({'Name':self.df.Name[vater].values[0], 'Num_Gen':num_gen+1, 'desc':desc.add(ind)}) # 
+            if any(vater): elter1_anc_list.append({'Name':self.df.Name[vater].values[0], 'Num_Gen':num_gen+1, 'desc':desc}) # 
             mutter = self.df.Name == self.df[self.df.Name == str(ind)].Mutter.values[0] # 
-            if any(mutter): elter1_anc_list.append({'Name':self.df.Name[mutter].values[0], 'Num_Gen':num_gen+1, 'desc':desc.add(ind)}) # 
+            if any(mutter): elter1_anc_list.append({'Name':self.df.Name[mutter].values[0], 'Num_Gen':num_gen+1, 'desc':desc}) # 
 
         for anc in elter2_anc_list: # 
             ind = anc['Name'] # 
             num_gen = anc['Num_Gen'] #
-            desc = anc['desc'] # 
+            desc = anc['desc'].copy()
+            desc.add(ind) # 
             vater = self.df.Name == self.df[self.df.Name == str(ind)].Vater.values[0] # 
-            if any(vater): elter2_anc_list.append({'Name':self.df.Name[vater].values[0], 'Num_Gen':num_gen+1, 'desc':desc.add(ind)}) # 
+            if any(vater): elter2_anc_list.append({'Name':self.df.Name[vater].values[0], 'Num_Gen':num_gen+1, 'desc':desc}) # 
             mutter = self.df.Name == self.df[self.df.Name == str(ind)].Mutter.values[0] # 
-            if any(mutter): elter2_anc_list.append({'Name':self.df.Name[mutter].values[0], 'Num_Gen':num_gen+1, 'desc':desc.add(ind)}) # 
+            if any(mutter): elter2_anc_list.append({'Name':self.df.Name[mutter].values[0], 'Num_Gen':num_gen+1, 'desc':desc}) # 
         
         common_anc_set = {anc['Name'] for anc in elter1_anc_list} & {anc['Name'] for anc in elter2_anc_list} # 
+        print(common_anc_set)
+        print(elter1_anc_list)
         for anc in elter1_anc_list: # No matter which parent list, because in coman_anc_set only the intersection
             if anc['Name'] in common_anc_set and bool(anc['desc'] & common_anc_set): common_anc_set.remove(anc['Name']) # So that not all ancestors of duplicates are included, they will then appear in the next recursive call.
 
