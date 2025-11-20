@@ -4,31 +4,45 @@ import numpy as np #
 import pandas as pd # 
 import tkinter as tk # 
 from pathlib import Path # 
+from tkinter import ttk # 
 from tkinter import filedialog # 
-from tkinter import messagebox # 
+from tkinter import messagebox #
 import matplotlib.pyplot as plt # 
 from tkinter import simpledialog # 
 # Functions
 def main(): # 
     '''
     The main function.
-    Asks the user for the Task.
+    Starts the GUI and connects it to the backend
     '''
     csv_path = Path(filedialog.askopenfilename(title='CSV-Datei als Datensatz auswählen', filetypes=[('CSV files', '*.csv')])) # CSV - File über GUI abfragen
     pg = PedGen(csv_path) # 
-    task = simpledialog.askstring('Anwendung','Geben sie "PG" ein um ein Pedigree zu generieren oder "IK" um einen Inzuchtkoeffizient zu berechnen.')
-    if task not in ('PG', 'IK'): 
-        messagebox.showerror('Fehler', f'Bitte geben Sie PG ode IK ein. Ihre eingabe wahr {task}.') # 
-        sys.exit() # 
+    #task = simpledialog.askstring('Anwendung','Geben sie "PG" ein um ein Pedigree zu generieren oder "IK" um einen Inzuchtkoeffizient zu berechnen.')
 
-    elif task == 'PG':
+    def gen_ped():
         ind, gen, ik, ped = pg.generate_pedigree() # 
         pg.plot_pedigree(ind, gen, ik, ped) # 
     
-    else: 
+    def calc_inb(): 
         ik = pg.calc_full_inbreed()
         print(f'IK = {ik}')
-        messagebox.showinfo('IK', f'IK = {ik}')     
+        messagebox.showinfo('IK', f'IK = {ik}')  
+
+    window = tk.Tk()
+    window.title('Pedigree Generator')
+    window.geometry('640x480') # Width x Height
+
+    label_pg = ttk.Label(window, text='Pedigree generieren:')
+    label_pg.grid(row=0,column=0,padx=25, pady=25)
+
+    label_ik = ttk.Label(window, text='Inzuchtkoeffizient berechnen:')
+    label_ik.grid(row=1,column=0,padx=25, pady=25)
+
+    pedigree = ttk.Button(window, text='PG', command=gen_ped)
+    pedigree.grid(row=0,column=1)
+    inbreed = ttk.Button(window, text='IK', command=calc_inb)
+    inbreed.grid(row=1,column=1)
+    window.mainloop()   
 
 # Objects
 class PedGen(): # 
