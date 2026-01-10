@@ -1,15 +1,15 @@
 Name;Titel;LOM;Geb;Bewertung;Farbe;Vater;Mutter
-Individuum;von Hof 1;DE0801;01.01.2024;n.n.;schwarz;Papa;Mama
-Papa;von Hof 2;DE0802;02.01.2022;8/8/8;rot;Opa 1;Oma 1
-Mama;von Hof 1;DE0803;03.01.2022;8/7/8;dun;Opa 2;Oma 2
-Opa 1;von Hof 2;DE0804;04.01.2020;6/6/6;gefelckt;Uropa 1;Uroma 1
-Opa 2;von Hof 3;DE0805;05.01.2020;9/9/8;schwarz;Uropa 2;Uroma 2
-Oma 1;von Hof 1;DE0806;06.01.2019;7/7/7;rot;Uropa 4;Uroma 3
-Oma 2;von Hof 1;DE0807;07.01.2020;7/8/9;dun;Uropa 4;Uroma 4
+Individuum;von Hof 1;DE0801;01.01.2024;n.n.;schwarz;Papa von Hof 2;Mama von Hof 1
+Papa;von Hof 2;DE0802;02.01.2022;8/8/8;rot;Opa 1 von Hof 2;Oma 1 von Hof 1
+Mama;von Hof 1;DE0803;03.01.2022;8/7/8;dun;Opa 2 von Hof 3;Oma 2 von Hof 1
+Opa 1;von Hof 2;DE0804;04.01.2020;6/6/6;gefelckt;Uropa 1 von Hof 4;Uroma 1 von Hof 1
+Opa 2;von Hof 3;DE0805;05.01.2020;9/9/8;schwarz;Uropa 2 von Hof 5;Uroma 2 von Hof 1
+Oma 1;von Hof 1;DE0806;06.01.2019;7/7/7;rot;Uropa 4 von Hof 6;Uroma 3 von Hof 1
+Oma 2;von Hof 1;DE0807;07.01.2020;7/8/9;dun;Uropa 4 von Hof 6;Uroma 4 von Hof 1
 Uropa 1;von Hof 4;DE0808;08.01.2018;//;gefelckt;/;/
 Uropa 2;von Hof 5;DE0809;09.01.2016;878;schwarz;/;/
 Uropa 3;von Hof 5;DE0810;10.01.2018;888;rot;/;/
-Uropa 4;Von Hof 6;DE0811;11.01.2017;gut;dun;/;/
+Uropa 4;von Hof 6;DE0811;11.01.2017;gut;dun;/;/
 Uroma 1;von Hof 1;DE0812;12.01.2019;test;gefelckt;/;/
 Uroma 2;von Hof 1;DE0813;13.01.2018;sehr gut;schwarz;/;/
 Uroma 3;von Hof 1;DE0814;14.01.2018;mittel;rot;/;/

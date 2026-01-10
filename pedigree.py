@@ -15,16 +15,74 @@ def main(): #
     The main function.
     Starts the GUI and connects it to the backend
     '''
-    csv_path = Path(filedialog.askopenfilename(title='CSV-Datei als Datensatz auswählen', filetypes=[('CSV files', '*.csv')])) # CSV - File über GUI abfragen
-    pg = PedGen(csv_path) # 
-    #task = simpledialog.askstring('Anwendung','Geben sie "PG" ein um ein Pedigree zu generieren oder "IK" um einen Inzuchtkoeffizient zu berechnen.')
+    pg = PedGen()
+
+    def open_csv():
+        csv_path = Path(filedialog.askopenfilename(title='CSV-Datei als Datenbank auswählen', filetypes=[('CSV files', '*.csv')])) # CSV - File über GUI abfragen
+        pg.open_csv(csv_path)
+        var_csv.set(csv_path)
+
+    def show_data():
+        '''
+        Docstring für show_data
+        '''
+        def sort_by_col(tree, col, reverse=False):
+            '''
+            Sort Treeview by given column sortieren.
+            '''
+            daten = [(tree.set(k, col), k) for k in tree.get_children("")] # get all items + values in this col (value_in_coll, item_ID)
+
+            
+            try: daten.sort(key=lambda t: float(t[0]), reverse=reverse) # sort numerical 
+            except ValueError: daten.sort(key=lambda t: t[0], reverse=reverse) # sort as string
+
+            
+            for index, (wert, k) in enumerate(daten): # reorder to sorted index
+                tree.move(k, '', index)
+
+            tree.heading(col,command=lambda: sort_by_col(tree, col, not reverse)) # next clickshloud sort revers
+
+        data_window = tk.Toplevel()
+        data_window.title('Datenbank')
+
+        frame = ttk.Frame(data_window)
+        frame.pack(fill="both", expand=True)
+
+        # Treeview
+        tree = ttk.Treeview(frame, columns=list(pg.df.columns), show="headings")
+        
+        # Scrollbars
+        scroll_y = ttk.Scrollbar(frame, orient="vertical", command=tree.yview)
+        scroll_x = ttk.Scrollbar(frame, orient="horizontal", command=tree.xview)
+        tree.configure(yscrollcommand=scroll_y.set, xscrollcommand=scroll_x.set)
+        
+        # Spalten konfigurieren
+        for col, width in zip(pg.df.columns,[100,200,200,100,100,100,300,300,300]):
+            tree.heading(col, text=col, command=lambda c=col: sort_by_col(tree, c, False))
+            tree.column(col, anchor="center", width=width,stretch=False)
+
+        # Daten einfügen
+        for _, row in pg.df.iterrows():
+            tree.insert("", "end", values=list(row))
+
+        # Layout
+        tree.grid(row=0, column=0, sticky="nsew")
+        scroll_y.grid(row=0, column=1, sticky="ns")
+        scroll_x.grid(row=1, column=0, sticky="ew")
+
+        frame.rowconfigure(0, weight=1)
+        frame.columnconfigure(0, weight=1)
 
     def gen_ped():
-        ind, gen, ik, ped = pg.generate_pedigree() # 
+        ind = entry_name.get()
+        ngen =int(sb_ngen.get()) # ngen = user input
+        gen, ik, ped = pg.generate_pedigree(ind,ngen) # gen = real found gen --> gen <= ngen
         pg.plot_pedigree(ind, gen, ik, ped) # 
     
     def calc_inb(): 
-        ik = pg.calc_full_inbreed()
+        elter1 = entry_elter1.get()
+        elter2 = entry_elter2.get()
+        ik = pg.calc_full_inbreed(elter1,elter2)
         print(f'IK = {ik}')
         messagebox.showinfo('IK', f'IK = {ik}')  
 
@@ -32,16 +90,44 @@ def main(): #
     window.title('Pedigree Generator')
     window.geometry('640x480') # Width x Height
 
-    label_pg = ttk.Label(window, text='Pedigree generieren:')
-    label_pg.grid(row=0,column=0,padx=25, pady=25)
+    menu = tk.Menu(window)
+    window.config(menu=menu)
+    filemenu = tk.Menu(menu)
+    menu.add_cascade(label='File', menu=filemenu)
+    filemenu.add_command(label='New')
+    filemenu.add_command(label='Öffnen', command=open_csv)
+    filemenu.add_separator()
+    filemenu.add_command(label='Beenden', command=window.quit)
+    helpmenu = tk.Menu(menu)
+    menu.add_cascade(label='Help', menu=helpmenu)
+    helpmenu.add_command(label='About')
 
-    label_ik = ttk.Label(window, text='Inzuchtkoeffizient berechnen:')
-    label_ik.grid(row=1,column=0,padx=25, pady=25)
 
-    pedigree = ttk.Button(window, text='PG', command=gen_ped)
-    pedigree.grid(row=0,column=1)
-    inbreed = ttk.Button(window, text='IK', command=calc_inb)
-    inbreed.grid(row=1,column=1)
+    var_csv = tk.StringVar(value='Noch keine Datenbank geöffnet')
+
+    ttk.Label(window, text='Datenbank:', font=('',12,'bold')).grid(row=0,column=0,columnspan=2, sticky='w', pady=25)
+    ttk.Label(window, textvariable=var_csv).grid(row=0,column=2,columnspan=3,sticky='w')
+    ttk.Button(window, text='Öffnen', command=open_csv).grid(row=1,column=0)
+    ttk.Button(window, text='Anzeigen', command=show_data).grid(row=1,column=1)
+
+    ttk.Label(window, text='Pedigree:', font=('',12,'bold')).grid(row=2,column=0,columnspan=2, sticky='w', pady=25)
+    ttk.Label(window, text='Name').grid(row=3,column=0)
+    entry_name = ttk.Entry(window)
+    entry_name.grid(row=3,column=1)
+    ttk.Label(window, text='Gen').grid(row=3,column=2)
+    sb_ngen = ttk.Spinbox(window,from_=1, to=3, state='readonly', justify='right', width=1)
+    sb_ngen.set(3)
+    sb_ngen.grid(row=3,column=3)
+    ttk.Button(window, text='Generieren', command=gen_ped).grid(row=3,column=4)
+
+    ttk.Label(window, text='Inzuchtkoeffizient:', font=('',12,'bold')).grid(row=4,column=0, columnspan=2, sticky='w',pady=25)
+    ttk.Label(window, text='Elter 1').grid(row=5,column=0)
+    entry_elter1 = ttk.Entry(window)
+    entry_elter1.grid(row=5,column=1,padx=20)
+    ttk.Label(window, text='Elter 2').grid(row=5,column=2)
+    entry_elter2 = ttk.Entry(window)
+    entry_elter2.grid(row=5,column=3, padx=20)
+    ttk.Button(window, text='Berechnen', command=calc_inb).grid(row=5,column=4)
     window.mainloop()   
 
 # Objects
@@ -50,14 +136,19 @@ class PedGen(): #
     The Pedigree-Generator object class.
     So to speak, the Gerneratir itself.
     '''
-    def __init__(self, csv_path): # 
+    def __init__(self): # 
         '''
         Initializes the generator. 
         Loads the csv file into a DataFrame and fills gaps with empty strings.
         '''
+        self.csv_path = None
+        self.df = pd.DataFrame()
+
+    def open_csv(self,csv_path):
         self.csv_path = Path(csv_path) # 
         self.df = pd.read_csv(self.csv_path, sep=';') # CSV - Fle einelsen
         self.df = self.df.fillna(' ') # Leere Felder mit leerem String füllen
+        self.df['NameTitel'] = self.df.Name + ' ' + self.df.Titel
 
     def df_to_string(self, elter, ngen, gen): # Funktion um Datenbankwerte in String umzuwandeln
         '''
@@ -68,50 +159,48 @@ class PedGen(): #
 
         else: return f'{self.df.values[elter][0][0]}  {str(self.df.values[elter][0][1])} {'\n' * 2} {self.df.values[elter][0][2]} {' ' * 3} Bew.: {self.df.values[elter][0][4]}  {' ' * 3} Farbe: {self.df.values[elter][0][5]}' # 
 
-    def generate_pedigree(self): # Struktur des Pedigree erstellen
+    def generate_pedigree(self, ind, ngen): # Struktur des Pedigree erstellen
         '''
         Generates the pedigree. 
         Requests the individual and the number of generations (supports 1, 2, or 3 generations). 
         Also uses the function to calculate the IK.
         '''
-        ind = simpledialog.askstring('Tier','Name des Tiers für das ein Pedigree erstellt werden soll: ') # Tier für das Pedigree über GUI abfragen
         if not any(self.df.Name==ind): # Fehlermeldung wenn Tier nicht in Datenbank
             messagebox.showerror('Fehler', f'Tier "{ind}" nicht in Datensatz vorhanden. Bitte Datensatz überprüfen.') # 
-            sys.exit() # 
+            raise ValueError(f'Tier "{ind}" nicht in Datensatz vorhanden. Bitte Datensatz überprüfen.') # 
 
-        n_gen = simpledialog.askinteger('Anzahl','Geben sie an wie viele Generationen das Pedigree beinhalten soll (1/2/3): ') # Anzahl der zu erstellenden Generationen über GUI abfragen
-        if not any(num==n_gen for num in {1,2,3}): # 
-            messagebox.showerror('Fehler', f'Bitte gebben sie als Anzahl der Generationen "1", "2" oder "3" ein. Ihre Eingabe war {n_gen}.') # 
-            sys.exit() # 
+        if not any(num==ngen for num in {1,2,3}): # 
+            messagebox.showerror('Fehler', f'Bitte gebben sie als Anzahl der Generationen "1", "2" oder "3" ein. Ihre Eingabe war {ngen}.') # 
+            raise ValueError(f'Bitte gebben sie als Anzahl der Generationen "1", "2" oder "3" ein. Ihre Eingabe war {ngen}.') # 
 
-        print(f'\033[36mPedigree von {ind} wird über {n_gen} Generationen generiert.\033[0m')
+        print(f'\033[36mPedigree von {ind} wird über {ngen} Generationen generiert.\033[0m')
         ped = pd.DataFrame() # Leeres Dateframe erstellen
         nk_list = [ind] # Nachkommeliste mit anfäglichem Individuum inizialisieren
         gen_str_list = ['V.','M.','V.V.','V.M.','M.V.','M.M.','V.V.V.','V.V.M.','V.M.V.','V.M.M.','M.V.V.','M.V.M.','M.M.V.','M.M.M.'] # Strings für die Einszelnen Generationen an Väetrn und Müttern
         ik = 0
-        for gen in range(1,n_gen+1): #Für jede Genreartion...
+        for gen in range(1,ngen+1): #Für jede Genreartion...
             gen_list = [] # 
             v_m_list = [] # 
             for i in nk_list: # Für jedes Tier in der Nachkommenliste
-                vater = self.df.Name == self.df[self.df.Name == str(i)].Vater.values[0] # Welcher eintrag im df enthält den Vater
+                vater = self.df.NameTitel == self.df[self.df.Name == str(i)].Vater.values[0] # Welcher eintrag im df enthält den Vater
                 if any(vater): v_m_list.append(self.df.Name[vater].values[0]) # Name des Vaters in Vater - Mutter Liste hinzufügen
                 else: # Fehlermeldung wenn kein Vater gefunden
                     messagebox.showerror('Fehler', f'Vater von {i} nicht gefunden. Es werden nur {gen-1} Generationen generiert. Bitte Datensatz überpüfen.') # 
                     print(f'\033[33mVater von {i} nicht gefunden. Es werden nur {gen-1} Generationen generiert. Bitte Datensatz überpüfen.\033[0m')
-                    return ind, gen - 1, ik, ped # Rückgabe aktuelles Pedigree und aktualiserter Genrationenanzahl
+                    return gen - 1, ik, ped # Rückgabe aktuelles Pedigree und aktualiserter Genrationenanzahl
 
-                mutter = self.df.Name == self.df[self.df.Name == str(i)].Mutter.values[0] # Welcher Eintrag im df enthält die Mutter
+                mutter = self.df.NameTitel == self.df[self.df.Name == str(i)].Mutter.values[0] # Welcher Eintrag im df enthält die Mutter
                 if any(mutter): v_m_list.append(self.df.Name[mutter].values[0]) # Name der Mutter in Vater - Mutter Liste hinzufügen
                 else:# Fehlermeldung wenn keine Mutter gefunden
                     messagebox.showerror('Fehler', f'Mutter von {i} nicht gefunden. Es werden nur {gen-1} Generationen generiert. Bitte Datensatz überpüfen.') # 
                     print(f'\033[33mMutter von {i} nicht gefunden. Es werden nur {gen-1} Generationen generiert. Bitte Datensatz überpüfen.\033[0m')
-                    return ind, gen - 1, ik, ped #Rückgabe aktuelles Pedigree und aktualiserter Genrationenanzahl
+                    return  gen - 1, ik, ped #Rückgabe aktuelles Pedigree und aktualiserter Genrationenanzahl
 
-                gen_list.append('$\\bf{'+gen_str_list.pop(0)+'}$'+' '+self.df_to_string(vater,n_gen,gen)) # 
-                for y in range(int((2**n_gen-2**gen)/(2**(gen-1)))): # damit index passt / immer gleich
+                gen_list.append('$\\bf{'+gen_str_list.pop(0)+'}$'+' '+self.df_to_string(vater,ngen,gen)) # 
+                for y in range(int((2**ngen-2**gen)/(2**(gen-1)))): # damit index passt / immer gleich
                     gen_list.append(None) # 
 
-                gen_list.append('$\\bf{'+gen_str_list.pop(0)+'}$'+' '+self.df_to_string(mutter,n_gen,gen)) # 
+                gen_list.append('$\\bf{'+gen_str_list.pop(0)+'}$'+' '+self.df_to_string(mutter,ngen,gen)) # 
 
             if gen == 1: ik = self.calc_inbreed(self.df.Name[vater].values[0], self.df.Name[mutter].values[0])
 
@@ -119,7 +208,7 @@ class PedGen(): #
             nk_list = v_m_list # Nachkomenliste mit nächster Genreration füllen.
             ped['Generation ' + str(gen)] = gen_list # 
 
-        return ind, gen, ik , ped # 
+        return gen, ik , ped # 
 
     def plot_pedigree(self, ind, gen, ik, ped): # Figur mit supplots erstellen (jeder Plot eine generation)
         '''
@@ -164,9 +253,9 @@ class PedGen(): #
             num_gen = anc['Num_Gen'] #
             desc = anc['desc'].copy()
             desc.add(ind) # 
-            vater = self.df.Name == self.df[self.df.Name == str(ind)].Vater.values[0] # 
+            vater = self.df.NameTitel == self.df[self.df.Name == str(ind)].Vater.values[0] # 
             if any(vater): elter1_anc_list.append({'Name':self.df.Name[vater].values[0], 'Num_Gen':num_gen+1, 'desc':desc}) # 
-            mutter = self.df.Name == self.df[self.df.Name == str(ind)].Mutter.values[0] # 
+            mutter = self.df.NameTitel == self.df[self.df.Name == str(ind)].Mutter.values[0] # 
             if any(mutter): elter1_anc_list.append({'Name':self.df.Name[mutter].values[0], 'Num_Gen':num_gen+1, 'desc':desc}) # 
 
         for anc in elter2_anc_list: # 
@@ -174,9 +263,9 @@ class PedGen(): #
             num_gen = anc['Num_Gen'] #
             desc = anc['desc'].copy()
             desc.add(ind) # 
-            vater = self.df.Name == self.df[self.df.Name == str(ind)].Vater.values[0] # 
+            vater = self.df.NameTitel == self.df[self.df.Name == str(ind)].Vater.values[0] # 
             if any(vater): elter2_anc_list.append({'Name':self.df.Name[vater].values[0], 'Num_Gen':num_gen+1, 'desc':desc}) # 
-            mutter = self.df.Name == self.df[self.df.Name == str(ind)].Mutter.values[0] # 
+            mutter = self.df.NameTitel == self.df[self.df.Name == str(ind)].Mutter.values[0] # 
             if any(mutter): elter2_anc_list.append({'Name':self.df.Name[mutter].values[0], 'Num_Gen':num_gen+1, 'desc':desc}) # 
         
         common_anc_set = {anc['Name'] for anc in elter1_anc_list} & {anc['Name'] for anc in elter2_anc_list} # 
@@ -189,10 +278,10 @@ class PedGen(): #
             print(f'\033[33mGemeinsamen Vorfahren für {elter1} und {elter2} gefunden: {common_anc_set}\033[0m')
             anc_inbreed_list = [] # 
             for common_anc in common_anc_set: # 
-                common_anc_vater = self.df.Name == self.df[self.df.Name == str(common_anc)].Vater.values[0] # 
+                common_anc_vater = self.df.NameTitel == self.df[self.df.Name == str(common_anc)].Vater.values[0] # 
                 if any(common_anc_vater): common_anc_elter1 = self.df.Name[common_anc_vater].values[0] # 
                 else: common_anc_elter1 = None # 
-                common_anc_mutter = self.df.Name == self.df[self.df.Name == str(common_anc)].Mutter.values[0] # 
+                common_anc_mutter = self.df.NameTitel == self.df[self.df.Name == str(common_anc)].Mutter.values[0] # 
                 if any(common_anc_mutter): common_anc_elter2 = self.df.Name[common_anc_mutter].values[0] # 
                 else: common_anc_elter2 = None # 
                 elter1_num_gen_list = [anc['Num_Gen'] for anc in elter1_anc_list if anc['Name'] == common_anc] # 
@@ -209,19 +298,19 @@ class PedGen(): #
             print(f'\033[32mKeinen gemeinsamen Vorfahren für {elter1} und {elter2} gefunden.\033[0m')
             return 0 # 
 
-    def calc_full_inbreed(self,): # 
+    def calc_full_inbreed(self,elter1,elter2): # 
         '''
         More or less a starter function to calculate the IK when it should be calculated separately without pedigree.
         '''
-        elter1 = simpledialog.askstring('Elter 1','Name des ersten Elternteils für die Berechhnung des Inzuchtkoeffizienten: ') # 
+        #elter1 = simpledialog.askstring('Elter 1','Name des ersten Elternteils für die Berechhnung des Inzuchtkoeffizienten: ') # 
         if not any(self.df.Name==elter1): # Fehlermeldung wenn Tier nicht in Datenbank
             messagebox.showerror('Fehler', f'Tier {elter1} nicht in Datensatz vorhanden. Bitte Datensatz überprüfen.') # 
-            sys.exit() # 
+            raise ValueError(f'Tier {elter1} nicht in Datensatz vorhanden. Bitte Datensatz überprüfen.') 
 
-        elter2 = simpledialog.askstring('Elter 2','Name des zweiten Elternteils für die Berechhnung des Inzuchtkoeffizienten: ') # 
+        #elter2 = simpledialog.askstring('Elter 2','Name des zweiten Elternteils für die Berechhnung des Inzuchtkoeffizienten: ') # 
         if not any(self.df.Name==elter2): # Fehlermeldung wenn Tier nicht in Datenbank
             messagebox.showerror('Fehler', f'Tier {elter2} nicht in Datensatz vorhanden. Bitte Datensatz überprüfen.') # 
-            sys.exit() # 
+            raise ValueError(f'Tier {elter2} nicht in Datensatz vorhanden. Bitte Datensatz überprüfen.') 
 
         return self.calc_inbreed(elter1,elter2) # 
 
