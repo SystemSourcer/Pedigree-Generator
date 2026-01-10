@@ -57,7 +57,7 @@ def main(): #
         tree.configure(yscrollcommand=scroll_y.set, xscrollcommand=scroll_x.set)
         
         # Spalten konfigurieren
-        for col, width in zip(pg.df.columns,[100,200,200,100,100,100,300,300,300]):
+        for col, width in zip(pg.df.columns,[100,150,250,200,100,100,100,250,250]):
             tree.heading(col, text=col, command=lambda c=col: sort_by_col(tree, c, False))
             tree.column(col, anchor="center", width=width,stretch=False)
 
@@ -147,8 +147,8 @@ class PedGen(): #
     def open_csv(self,csv_path):
         self.csv_path = Path(csv_path) # 
         self.df = pd.read_csv(self.csv_path, sep=';') # CSV - Fle einelsen
-        self.df = self.df.fillna(' ') # Leere Felder mit leerem String füllen
-        self.df['NameTitel'] = self.df.Name + ' ' + self.df.Titel
+        self.df = self.df.fillna('') # Leere Felder mit leerem String füllen
+        self.df.insert(loc=2,column='NameTitel',value=(self.df.Name + ' ' + self.df.Titel).str.strip())
 
     def df_to_string(self, elter, ngen, gen): # Funktion um Datenbankwerte in String umzuwandeln
         '''
