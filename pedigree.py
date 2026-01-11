@@ -40,20 +40,20 @@ def main(): #
             for index, (wert, k) in enumerate(daten): # reorder to sorted index
                 tree.move(k, '', index)
 
-            tree.heading(col,command=lambda: sort_by_col(tree, col, not reverse)) # next clickshloud sort revers
+            tree.heading(col,command=lambda: sort_by_col(tree, col, not reverse)) # next clickshloud sort reverse
 
-        data_window = tk.Toplevel()
-        data_window.title('Datenbank')
+        show_window = tk.Toplevel()
+        show_window.title('Datenbank')
 
-        frame = ttk.Frame(data_window)
-        frame.pack(fill="both", expand=True)
+        show_frame = ttk.Frame(show_window)
+        show_frame.pack(fill="both", expand=True)
 
         # Treeview
-        tree = ttk.Treeview(frame, columns=list(pg.df.columns), show="headings")
+        tree = ttk.Treeview(show_frame, columns=list(pg.df.columns), show="headings")
         
         # Scrollbars
-        scroll_y = ttk.Scrollbar(frame, orient="vertical", command=tree.yview)
-        scroll_x = ttk.Scrollbar(frame, orient="horizontal", command=tree.xview)
+        scroll_y = ttk.Scrollbar(show_frame, orient="vertical", command=tree.yview)
+        scroll_x = ttk.Scrollbar(show_frame, orient="horizontal", command=tree.xview)
         tree.configure(yscrollcommand=scroll_y.set, xscrollcommand=scroll_x.set)
         
         # Spalten konfigurieren
@@ -70,8 +70,41 @@ def main(): #
         scroll_y.grid(row=0, column=1, sticky="ns")
         scroll_x.grid(row=1, column=0, sticky="ew")
 
-        frame.rowconfigure(0, weight=1)
-        frame.columnconfigure(0, weight=1)
+        show_frame.rowconfigure(0, weight=1)
+        show_frame.columnconfigure(0, weight=1)
+
+    def edit_data():
+        edit_window = tk.Toplevel()
+        edit_window.title('Bearbeiten: ' + var_csv.get())
+        
+        edit_frame = ttk.Frame(edit_window)
+        edit_frame.pack(fill="both", expand=True)
+
+        ttk.Label(edit_frame, text='Tier:', font=('',12,'bold')).grid(row=0,column=0,columnspan=2, sticky='w', pady=25)
+        cbox_name = ttk.Combobox(edit_frame, width=12, values=[''])
+        cbox_name.set('Name')
+        cbox_name.grid(row=1,column=0)
+        cbox_titel = ttk.Combobox(edit_frame, width=18, values=[''])
+        cbox_titel.set('Titel')
+        cbox_titel.grid(row=1,column=1)
+        cbox_lom = ttk.Combobox(edit_frame, width=20, values=[''])
+        cbox_lom.set('LOM')
+        cbox_lom.grid(row=1,column=2)
+        cbox_geb = ttk.Combobox(edit_frame, width=15, values=[''])
+        cbox_geb.set('Geb')
+        cbox_geb.grid(row=1,column=3)
+        cbox_bew = ttk.Combobox(edit_frame, width=5, values=[''])
+        cbox_bew.set('Bew')
+        cbox_bew.grid(row=1,column=4)
+        cbox_farbe = ttk.Combobox(edit_frame, width=10, values=[''])
+        cbox_farbe.set('Farbe')
+        cbox_farbe.grid(row=1,column=5)
+        cbox_vater = ttk.Combobox(edit_frame, width=30, values=[''])
+        cbox_vater.set('Vater mit Titel')
+        cbox_vater.grid(row=1,column=6)
+        cbox_muter = ttk.Combobox(edit_frame, width=30, values=[''])
+        cbox_muter.set('Mutter mit Titel')
+        cbox_muter.grid(row=1,column=7)
 
     def gen_ped():
         ind = entry_name.get()
@@ -88,7 +121,7 @@ def main(): #
 
     window = tk.Tk()
     window.title('Pedigree Generator')
-    window.geometry('640x480') # Width x Height
+    window.geometry('678x345') # Width x Height
 
     menu = tk.Menu(window)
     window.config(menu=menu)
@@ -109,6 +142,8 @@ def main(): #
     ttk.Label(window, textvariable=var_csv).grid(row=0,column=2,columnspan=3,sticky='w')
     ttk.Button(window, text='Öffnen', command=open_csv).grid(row=1,column=0)
     ttk.Button(window, text='Anzeigen', command=show_data).grid(row=1,column=1)
+    ttk.Button(window, text='Bearbeiten', command=edit_data).grid(row=1,column=2)
+    
 
     ttk.Label(window, text='Pedigree:', font=('',12,'bold')).grid(row=2,column=0,columnspan=2, sticky='w', pady=25)
     ttk.Label(window, text='Name').grid(row=3,column=0)
@@ -118,7 +153,7 @@ def main(): #
     sb_ngen = ttk.Spinbox(window,from_=1, to=3, state='readonly', justify='right', width=1)
     sb_ngen.set(3)
     sb_ngen.grid(row=3,column=3)
-    ttk.Button(window, text='Generieren', command=gen_ped).grid(row=3,column=4)
+    ttk.Button(window, text='Erstellen', command=gen_ped).grid(row=3,column=4)
 
     ttk.Label(window, text='Inzuchtkoeffizient:', font=('',12,'bold')).grid(row=4,column=0, columnspan=2, sticky='w',pady=25)
     ttk.Label(window, text='Elter 1').grid(row=5,column=0)
@@ -313,6 +348,19 @@ class PedGen(): #
             raise ValueError(f'Tier {elter2} nicht in Datensatz vorhanden. Bitte Datensatz überprüfen.') 
 
         return self.calc_inbreed(elter1,elter2) # 
+
+class HBEdit(): # 
+    '''
+    Docstring für HBEdit
+    '''
+    def __init__(self): # 
+        '''
+        Docstring für __init__
+        '''
+        self.csv_path = None
+        self.df = pd.DataFrame()
+        
+        
 
 # Global
 if __name__ == '__main__': # 
