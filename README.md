@@ -22,7 +22,7 @@ Dieses Projekt bietet ein Werkzeug zur Erstellung und Verwaltung von Stammbäume
    ```bash
    winget install -e --id Python.Python.3.12 --scope machine --accept-package-agreements --accept-source-agreements
    ```
-   - Gehen sie im in denheruntergeladenen ider entpackten Ordner. Installieren sie die notwendigen Python-Pakete:
+   - Gehen sie in den heruntergeladenen oder entpackten Ordner. Installieren sie die notwendigen Python-Pakete:
    ```bash
    cd Pedigree-Generator
    pip install -r requirements.txt
@@ -37,12 +37,12 @@ Dieses Projekt bietet ein Werkzeug zur Erstellung und Verwaltung von Stammbäume
   Die Datei "example.csv" ist eine Beispieldatei, die zum Testen den Programms und zur Veranschaulichung der geforderten Datenstruktur dienen soll. 
 3. **Regeln:**  
    Folgende Regeln sind in der Datenbank einzuhalten, damit das Programm funktioniert:
-      1. Die ersten 6 Spalten müssen wie im Beispiel Name, Titel des Betriebs, Ohrmarkennummer, Geburtsdatum, die Bewertung und die Farbe enthalten.
-      2. Die Namen der ersten 6 Spalten sollten exaxt un in ind dieser Reichhenfolge wie filgt lauten: **Name;Titel;LOM;Geb;Bewertung;Farbe;**
+      1. Die ersten 6 Spalten müssen wie im Beispiel Name, Titel, Ohrmarkennummer, Geburtsdatum, die Bewertung und die Farbe enthalten.
+      2. Die Namen der ersten 6 Spalten sollten exakt un in ind dieser Reichhenfolge wie folgt lauten: **Name;Titel;LOM;Geb;Bewertung;Farbe;**
       3. Fehlt ein Eintrag in Spalte 2-6, ensteht daraus kein Fehler und das Pedigree wird ohne die fehlenden Informationen erstellt.
       4. Die Spalten "Vater" und "Mutter" müssen enthalten sein und auch genau so heißen. Es ist aber egal wo sie sich ab Spalte 7 befinden.
       5. Es können ab Spalte 7 beliebig viele weitere Spalten enthalten sein, die nicht die Bezeichung "Vater" oder "Mutter" haben.
-      6. Der Name in den Spalten "Vater" oder "Mutter" muss mit dem Namen in der ersten Spalte der Zeile des entsprechenden Vater- oder Muttertiers exakt übereinstimmen (inklusive Leerzeichen vor und nach dem Name).
+      6. Der Name in den Spalten "Vater" oder "Mutter" muss mit dem Namen in der ersten und dem Titel in der zweiten Spalte der Zeile des entsprechenden Vater- oder Muttertiers exakt übereinstimmen (inklusive Leerzeichen vor dem Titel und nach dem Name).
 
 ## Verwendung
 
@@ -51,11 +51,9 @@ Dieses Projekt bietet ein Werkzeug zur Erstellung und Verwaltung von Stammbäume
    python pedigree.py
    ```
 
-2. Navigieren Sie im sich öffnenden Fenster zum CSV-File, der als Datengrunlage für das Pedigree dienen soll.
-3. Geben sie ein ob sie ein Pedigree (PG) oder einen Inzuchtkoeffizienten bberechnen wollen (IK)
-4. Geben sie den Namen des Tieres ein, dessen Pedigree erzeugt werdem soll.
-5. Geben sie an über wie viele Generationen das Pedigree erzeugt werden soll.
-6. Geben sie die Namen der Elterntiere ein wen sie den IK für deren Nachkommen berechhnen wollen.
+2. Im sich dann öffnenden Hauptfenster öffnen sie zerst die entsprechende Datenbank (csv-Datei).
+3. Um ein Pedigree zu erstellen, geben sie den Namen des Tiers und Anzahl Generationen ein. Dann klicken sie auf "Erstellen".
+4. Um den Inzuchtkoeffizient einer möglichen Anparung zu berechen, geben sie die Namen der zwei Elterntiere ein. Dann kilcken sie auf "Berechnen".
 
 ## Lizenz
 
@@ -63,4 +61,4 @@ Dieses Projekt steht unter der MIT-Lizenz. Siehe die [LICENSE](LICENSE) Datei f�
 
 ## Kontakt
 
-Bei Fragen oder Anregungen kannst du in Githubb in die Issues schauen, selbst ein Issue erstellen oder uns eine [Mail](mailto:simon@galloway-mielke.de) erreschreiben.
+Bei Fragen oder Anregungen kannst du in GitHub in die Issues schauen, selbst ein Issue erstellen oder uns eine [Mail](mailto:simon@galloway-mielke.de) schreiben.
