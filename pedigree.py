@@ -7,165 +7,40 @@ from pathlib import Path #
 from tkinter import ttk # 
 from tkinter import filedialog # 
 from tkinter import messagebox #
-import matplotlib.pyplot as plt # 
-from tkinter import simpledialog # 
+import matplotlib.pyplot as plt #  
 # Functions
 def main(): # 
     '''
     The main function.
     Starts the GUI and connects it to the backend
     '''
+    hb = HerdBuch()
     pg = PedGen()
-
-    def open_csv():
-        csv_path = Path(filedialog.askopenfilename(title='CSV-Datei als Datenbank auswählen', filetypes=[('CSV files', '*.csv')])) # CSV - File über GUI abfragen
-        pg.open_csv(csv_path)
-        var_csv.set(csv_path)
-
-    def show_data():
-        '''
-        Docstring für show_data
-        '''
-        def sort_by_col(tree, col, reverse=False):
-            '''
-            Sort Treeview by given column sortieren.
-            '''
-            daten = [(tree.set(k, col), k) for k in tree.get_children("")] # get all items + values in this col (value_in_coll, item_ID)
-
-            
-            try: daten.sort(key=lambda t: float(t[0]), reverse=reverse) # sort numerical 
-            except ValueError: daten.sort(key=lambda t: t[0], reverse=reverse) # sort as string
-
-            
-            for index, (wert, k) in enumerate(daten): # reorder to sorted index
-                tree.move(k, '', index)
-
-            tree.heading(col,command=lambda: sort_by_col(tree, col, not reverse)) # next clickshloud sort reverse
-
-        show_window = tk.Toplevel()
-        show_window.title('Datenbank')
-
-        show_frame = ttk.Frame(show_window)
-        show_frame.pack(fill="both", expand=True)
-
-        # Treeview
-        tree = ttk.Treeview(show_frame, columns=list(pg.df.columns), show="headings")
-        
-        # Scrollbars
-        scroll_y = ttk.Scrollbar(show_frame, orient="vertical", command=tree.yview)
-        scroll_x = ttk.Scrollbar(show_frame, orient="horizontal", command=tree.xview)
-        tree.configure(yscrollcommand=scroll_y.set, xscrollcommand=scroll_x.set)
-        
-        # Spalten konfigurieren
-        for col, width in zip(pg.df.columns,[100,150,250,200,100,100,100,250,250]):
-            tree.heading(col, text=col, command=lambda c=col: sort_by_col(tree, c, False))
-            tree.column(col, anchor="center", width=width,stretch=False)
-
-        # Daten einfügen
-        for _, row in pg.df.iterrows():
-            tree.insert("", "end", values=list(row))
-
-        # Layout
-        tree.grid(row=0, column=0, sticky="nsew")
-        scroll_y.grid(row=0, column=1, sticky="ns")
-        scroll_x.grid(row=1, column=0, sticky="ew")
-
-        show_frame.rowconfigure(0, weight=1)
-        show_frame.columnconfigure(0, weight=1)
-
-    def edit_data():
-        edit_window = tk.Toplevel()
-        edit_window.title('Bearbeiten: ' + var_csv.get())
-        
-        edit_frame = ttk.Frame(edit_window)
-        edit_frame.pack(fill="both", expand=True)
-
-        ttk.Label(edit_frame, text='Tier:', font=('',12,'bold')).grid(row=0,column=0,columnspan=2, sticky='w', pady=25)
-        cbox_name = ttk.Combobox(edit_frame, width=12, values=[''])
-        cbox_name.set('Name')
-        cbox_name.grid(row=1,column=0)
-        cbox_titel = ttk.Combobox(edit_frame, width=18, values=[''])
-        cbox_titel.set('Titel')
-        cbox_titel.grid(row=1,column=1)
-        cbox_lom = ttk.Combobox(edit_frame, width=20, values=[''])
-        cbox_lom.set('LOM')
-        cbox_lom.grid(row=1,column=2)
-        cbox_geb = ttk.Combobox(edit_frame, width=15, values=[''])
-        cbox_geb.set('Geb')
-        cbox_geb.grid(row=1,column=3)
-        cbox_bew = ttk.Combobox(edit_frame, width=5, values=[''])
-        cbox_bew.set('Bew')
-        cbox_bew.grid(row=1,column=4)
-        cbox_farbe = ttk.Combobox(edit_frame, width=10, values=[''])
-        cbox_farbe.set('Farbe')
-        cbox_farbe.grid(row=1,column=5)
-        cbox_vater = ttk.Combobox(edit_frame, width=30, values=[''])
-        cbox_vater.set('Vater mit Titel')
-        cbox_vater.grid(row=1,column=6)
-        cbox_muter = ttk.Combobox(edit_frame, width=30, values=[''])
-        cbox_muter.set('Mutter mit Titel')
-        cbox_muter.grid(row=1,column=7)
-
-    def gen_ped():
-        ind = entry_name.get()
-        ngen =int(sb_ngen.get()) # ngen = user input
-        gen, ik, ped = pg.generate_pedigree(ind,ngen) # gen = real found gen --> gen <= ngen
-        pg.plot_pedigree(ind, gen, ik, ped) # 
-    
-    def calc_inb(): 
-        elter1 = entry_elter1.get()
-        elter2 = entry_elter2.get()
-        ik = pg.calc_full_inbreed(elter1,elter2)
-        print(f'IK = {ik}')
-        messagebox.showinfo('IK', f'IK = {ik}')  
-
-    window = tk.Tk()
-    window.title('Pedigree Generator')
-    window.geometry('678x345') # Width x Height
-
-    menu = tk.Menu(window)
-    window.config(menu=menu)
-    filemenu = tk.Menu(menu)
-    menu.add_cascade(label='File', menu=filemenu)
-    filemenu.add_command(label='New')
-    filemenu.add_command(label='Öffnen', command=open_csv)
-    filemenu.add_separator()
-    filemenu.add_command(label='Beenden', command=window.quit)
-    helpmenu = tk.Menu(menu)
-    menu.add_cascade(label='Help', menu=helpmenu)
-    helpmenu.add_command(label='About')
-
-
-    var_csv = tk.StringVar(value='Noch keine Datenbank geöffnet')
-
-    ttk.Label(window, text='Datenbank:', font=('',12,'bold')).grid(row=0,column=0,columnspan=2, sticky='w', pady=25)
-    ttk.Label(window, textvariable=var_csv).grid(row=0,column=2,columnspan=3,sticky='w')
-    ttk.Button(window, text='Öffnen', command=open_csv).grid(row=1,column=0)
-    ttk.Button(window, text='Anzeigen', command=show_data).grid(row=1,column=1)
-    ttk.Button(window, text='Bearbeiten', command=edit_data).grid(row=1,column=2)
-    
-
-    ttk.Label(window, text='Pedigree:', font=('',12,'bold')).grid(row=2,column=0,columnspan=2, sticky='w', pady=25)
-    ttk.Label(window, text='Name').grid(row=3,column=0)
-    entry_name = ttk.Entry(window)
-    entry_name.grid(row=3,column=1)
-    ttk.Label(window, text='Gen').grid(row=3,column=2)
-    sb_ngen = ttk.Spinbox(window,from_=1, to=3, state='readonly', justify='right', width=1)
-    sb_ngen.set(3)
-    sb_ngen.grid(row=3,column=3)
-    ttk.Button(window, text='Erstellen', command=gen_ped).grid(row=3,column=4)
-
-    ttk.Label(window, text='Inzuchtkoeffizient:', font=('',12,'bold')).grid(row=4,column=0, columnspan=2, sticky='w',pady=25)
-    ttk.Label(window, text='Elter 1').grid(row=5,column=0)
-    entry_elter1 = ttk.Entry(window)
-    entry_elter1.grid(row=5,column=1,padx=20)
-    ttk.Label(window, text='Elter 2').grid(row=5,column=2)
-    entry_elter2 = ttk.Entry(window)
-    entry_elter2.grid(row=5,column=3, padx=20)
-    ttk.Button(window, text='Berechnen', command=calc_inb).grid(row=5,column=4)
-    window.mainloop()   
+    gui = GUITools(hb,pg)
 
 # Objects
+
+class HerdBuch(): # 
+    '''
+    Docstring für HBEdit
+    '''
+    def __init__(self): # 
+        '''
+        Docstring für __init__
+        '''
+        self.csv_path = None
+        self.df = pd.DataFrame()
+
+    def open_csv(self,csv_path):
+        self.csv_path = Path(csv_path) # 
+        self.df = pd.read_csv(self.csv_path, sep=';') # CSV - Fle einelsen
+        self.df = self.df.fillna('') # Leere Felder mit leerem String füllen
+        self.df.insert(loc=8,column='NameTitel',value=(self.df.Name + ' ' + self.df.Titel).str.strip())
+
+    def new_csv(self):
+        self.df = pd.DataFrame({'Name':[''],'Titel':[''],'LOM':[''],'Geb':[''],'Bew':[''],'Farbe':[''],'Vater':[''],'Mutter':['']})
+        self.df.insert(loc=8,column='NameTitel',value=(self.df.Name + ' ' + self.df.Titel).str.strip())
+
 class PedGen(): # 
     '''
     The Pedigree-Generator object class.
@@ -178,12 +53,6 @@ class PedGen(): #
         '''
         self.csv_path = None
         self.df = pd.DataFrame()
-
-    def open_csv(self,csv_path):
-        self.csv_path = Path(csv_path) # 
-        self.df = pd.read_csv(self.csv_path, sep=';') # CSV - Fle einelsen
-        self.df = self.df.fillna('') # Leere Felder mit leerem String füllen
-        self.df.insert(loc=2,column='NameTitel',value=(self.df.Name + ' ' + self.df.Titel).str.strip())
 
     def df_to_string(self, elter, ngen, gen): # Funktion um Datenbankwerte in String umzuwandeln
         '''
@@ -349,18 +218,173 @@ class PedGen(): #
 
         return self.calc_inbreed(elter1,elter2) # 
 
-class HBEdit(): # 
+class GUITools(): # 
     '''
-    Docstring für HBEdit
+    Docstring für GUITools
     '''
-    def __init__(self): # 
+
+    def __init__(self,hb,pg):
         '''
         Docstring für __init__
         '''
-        self.csv_path = None
-        self.df = pd.DataFrame()
+
+        self.hb = hb 
+        self.pg = pg
+
+        self.window = tk.Tk()
+        self.window.title('Pedigree Generator')
+        self.window.geometry('678x345') # Width x Height
+
+        self.menu = tk.Menu(self.window)
+        self.window.config(menu=self.menu)
+        self.filemenu = tk.Menu(self.menu)
+        self.menu.add_cascade(label='File', menu=self.filemenu)
+        self.filemenu.add_command(label='Neue Datenbank erstellen', command=self.new_data)
+        self.filemenu.add_command(label='Datenbank Öffnen', command=self.open_csv)
+        self.filemenu.add_separator()
+        self.filemenu.add_command(label='Beenden', command=self.window.quit)
+        helpmenu = tk.Menu(self.menu)
+        self.menu.add_cascade(label='Help', menu=helpmenu)
+        helpmenu.add_command(label='About')
+
+        self.var_csv = tk.StringVar(value='Noch keine Datenbank geöffnet')
+    
+        ttk.Label(self.window, text='Datenbank:', font=('',12,'bold')).grid(row=0,column=0,columnspan=2, sticky='w', pady=25)
+        ttk.Label(self.window, textvariable=self.var_csv).grid(row=0,column=2,columnspan=3,sticky='w')
+        ttk.Button(self.window, text='Öffnen', command=self.open_csv).grid(row=1,column=0)
+        ttk.Button(self.window, text='Anzeigen', command=self.show_data).grid(row=1,column=1)
+        ttk.Button(self.window, text='Bearbeiten', command=self.edit_data).grid(row=1,column=2)
         
+        ttk.Label(self.window, text='Pedigree:', font=('',12,'bold')).grid(row=2,column=0,columnspan=2, sticky='w', pady=25)
+        ttk.Label(self.window, text='Name').grid(row=3,column=0)
+        self.entry_name = ttk.Entry(self.window)
+        self.entry_name.grid(row=3,column=1)
+        ttk.Label(self.window, text='Gen').grid(row=3,column=2)
+        self.sb_ngen = ttk.Spinbox(self.window,from_=1, to=3, state='readonly', justify='right', width=1)
+        self.sb_ngen.set(3)
+        self.sb_ngen.grid(row=3,column=3)
+        ttk.Button(self.window, text='Erstellen', command=self.gen_ped).grid(row=3,column=4)
+
+        ttk.Label(self.window, text='Inzuchtkoeffizient:', font=('',12,'bold')).grid(row=4,column=0, columnspan=2, sticky='w',pady=25)
+        ttk.Label(self.window, text='Elter 1').grid(row=5,column=0)
+        self.entry_elter1 = ttk.Entry(self.window)
+        self.entry_elter1.grid(row=5,column=1,padx=20)
+        ttk.Label(self.window, text='Elter 2').grid(row=5,column=2)
+        self.entry_elter2 = ttk.Entry(self.window)
+        self.entry_elter2.grid(row=5,column=3, padx=20)
+        ttk.Button(self.window, text='Berechnen', command=self.calc_inb).grid(row=5,column=4)
+        self.window.mainloop() 
+    
+    def open_csv(self):
+        csv_path = Path(filedialog.askopenfilename(title='CSV-Datei als Datenbank auswählen', filetypes=[('CSV files', '*.csv')])) # CSV - File über GUI abfragen
+        self.hb.open_csv(csv_path)
+        self.var_csv.set(csv_path)
+
+
+    def new_data(self):
+        self.hb.new_csv()
+
+
+    def sort_by_col(self, col, reverse=False):
+        '''
+        Sort Treeview by given column sortieren.
+        '''
+        daten = [(self.tree.set(k, col), k) for k in self.tree.get_children("")] # get all items + values in this col (value_in_coll, item_ID)
+
         
+        try: daten.sort(key=lambda t: float(t[0]), reverse=reverse) # sort numerical 
+        except ValueError: daten.sort(key=lambda t: t[0], reverse=reverse) # sort as string
+
+        
+        for index, (wert, k) in enumerate(daten): # reorder to sorted index
+            self.tree.move(k, '', index)
+
+        self.tree.heading(col,command=lambda: self.sort_by_col(col, not reverse)) # next clickshloud sort reverse
+
+    def show_data(self):
+        '''
+        Docstring für show_data
+        '''
+        self.show_window = tk.Toplevel()
+        self.show_window.title('Datenbank')
+
+        self.show_frame = ttk.Frame(self.show_window)
+        self.show_frame.pack(fill="both", expand=True)
+
+        # Treeview
+        self.tree = ttk.Treeview(self.show_frame, columns=list(self.hb.df.columns), show="headings")
+        
+        # Scrollbars
+        scroll_y = ttk.Scrollbar(self.show_frame, orient="vertical", command=self.tree.yview)
+        scroll_x = ttk.Scrollbar(self.show_frame, orient="horizontal", command=self.tree.xview)
+        self.tree.configure(yscrollcommand=scroll_y.set, xscrollcommand=scroll_x.set)
+        
+        # Spalten konfigurieren
+        for col, width in zip(self.hb.df.columns,[100,150,250,200,100,100,100,250,250]):
+            self.tree.heading(col, text=col, command=lambda c=col: self.sort_by_col(c, False))
+            self.tree.column(col, anchor="center", width=width,stretch=False)
+
+        # Daten einfügen
+        for _, row in self.hb.df.iterrows():
+            self.tree.insert("", "end", values=list(row))
+
+        # Layout
+        self.tree.grid(row=0, column=0, sticky="nsew")
+        scroll_y.grid(row=0, column=1, sticky="ns")
+        scroll_x.grid(row=1, column=0, sticky="ew")
+
+        self.show_frame.rowconfigure(0, weight=1)
+        self.show_frame.columnconfigure(0, weight=1)
+
+    def edit_data(self):
+        edit_window = tk.Toplevel()
+        edit_window.title('Bearbeiten: ' + self.var_csv.get())
+        
+        edit_frame = ttk.Frame(edit_window)
+        edit_frame.pack(fill="both", expand=True)
+
+        ttk.Label(edit_frame, text='Tier:', font=('',12,'bold')).grid(row=0,column=0,columnspan=2, sticky='w', pady=25)
+        cbox_name = ttk.Combobox(edit_frame, width=12, values=[''])
+        cbox_name.set('Name')
+        cbox_name.grid(row=1,column=0)
+        cbox_titel = ttk.Combobox(edit_frame, width=18, values=[''])
+        cbox_titel.set('Titel')
+        cbox_titel.grid(row=1,column=1)
+        cbox_lom = ttk.Combobox(edit_frame, width=20, values=[''])
+        cbox_lom.set('LOM')
+        cbox_lom.grid(row=1,column=2)
+        cbox_geb = ttk.Combobox(edit_frame, width=15, values=[''])
+        cbox_geb.set('Geb')
+        cbox_geb.grid(row=1,column=3)
+        cbox_bew = ttk.Combobox(edit_frame, width=5, values=[''])
+        cbox_bew.set('Bew')
+        cbox_bew.grid(row=1,column=4)
+        cbox_farbe = ttk.Combobox(edit_frame, width=10, values=[''])
+        cbox_farbe.set('Farbe')
+        cbox_farbe.grid(row=1,column=5)
+        cbox_vater = ttk.Combobox(edit_frame, width=30, values=[''])
+        cbox_vater.set('Vater mit Titel')
+        cbox_vater.grid(row=1,column=6)
+        cbox_muter = ttk.Combobox(edit_frame, width=30, values=[''])
+        cbox_muter.set('Mutter mit Titel')
+        cbox_muter.grid(row=1,column=7)
+   
+    def gen_ped(self):
+        ind = self.entry_name.get()
+        ngen =int(self.sb_ngen.get()) # ngen = user input
+        self.pg.df = self.hb.df
+        gen, ik, ped = self.pg.generate_pedigree(ind,ngen) # gen = real found gen --> gen <= ngen
+        self.pg.plot_pedigree(ind, gen, ik, ped) # 
+   
+    def calc_inb(self): 
+        elter1 = self.entry_elter1.get()
+        elter2 = self.entry_elter2.get()
+        self.pg.df = self.hb.df
+        ik = self.pg.calc_full_inbreed(elter1,elter2)
+        print(f'IK = {ik}')
+        messagebox.showinfo('IK', f'IK = {ik}')  
+        
+   
 
 # Global
 if __name__ == '__main__': # 
