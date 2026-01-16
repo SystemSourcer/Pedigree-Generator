@@ -35,11 +35,17 @@ class HerdBuch(): #
         self.csv_path = Path(csv_path) # 
         self.df = pd.read_csv(self.csv_path, sep=';') # CSV - Fle einelsen
         self.df = self.df.fillna('') # Leere Felder mit leerem String füllen
-        self.df.insert(loc=8,column='NameTitel',value=(self.df.Name + ' ' + self.df.Titel).str.strip())
+        self.df['NameTitel']=(self.df.Name + ' ' + self.df.Titel).str.strip()
 
-    def new_csv(self):
+    def new_csv(self,csv_path):
+        self.csv_path = Path(csv_path)
         self.df = pd.DataFrame({'Name':[''],'Titel':[''],'LOM':[''],'Geb':[''],'Bew':[''],'Farbe':[''],'Vater':[''],'Mutter':['']})
-        self.df.insert(loc=8,column='NameTitel',value=(self.df.Name + ' ' + self.df.Titel).str.strip())
+        self.df.to_csv(self.csv_path,';',index=False)
+        self.df['NameTitel']=(self.df.Name + ' ' + self.df.Titel).str.strip()
+
+    def save_csv(self):
+        self.df.to_csv(self.csv_path,';',index=False)
+        print(f'DataFrame erfolgreich in {self.csv_path} gespeichert')
 
 class PedGen(): # 
     '''
@@ -222,7 +228,6 @@ class GUITools(): #
     '''
     Docstring für GUITools
     '''
-
     def __init__(self,hb,pg):
         '''
         Docstring für __init__
@@ -251,9 +256,10 @@ class GUITools(): #
     
         ttk.Label(self.window, text='Datenbank:', font=('',12,'bold')).grid(row=0,column=0,columnspan=2, sticky='w', pady=25)
         ttk.Label(self.window, textvariable=self.var_csv).grid(row=0,column=2,columnspan=3,sticky='w')
-        ttk.Button(self.window, text='Öffnen', command=self.open_csv).grid(row=1,column=0)
-        ttk.Button(self.window, text='Anzeigen', command=self.show_data).grid(row=1,column=1)
-        ttk.Button(self.window, text='Bearbeiten', command=self.edit_data).grid(row=1,column=2)
+        ttk.Button(self.window, text='Öffnen', command=self.open_csv).grid(row=1,column=1)
+        ttk.Button(self.window, text='Anzeigen', command=self.show_data).grid(row=1,column=2)
+        ttk.Button(self.window, text='Bearbeiten', command=self.edit_data).grid(row=1,column=3)
+        ttk.Button(self.window, text='Speichern', command=self.save_data).grid(row=1,column=4)
         
         ttk.Label(self.window, text='Pedigree:', font=('',12,'bold')).grid(row=2,column=0,columnspan=2, sticky='w', pady=25)
         ttk.Label(self.window, text='Name').grid(row=3,column=0)
@@ -280,10 +286,12 @@ class GUITools(): #
         self.hb.open_csv(csv_path)
         self.var_csv.set(csv_path)
 
-
     def new_data(self):
-        self.hb.new_csv()
-
+        new_csv_file = filedialog.asksaveasfile(filetypes=[('CSV-File','*.csv')],defaultextension='.csv',title='Neue Datenbank speichern als:')
+        new_csv_path = new_csv_file.name
+        new_csv_file.close()
+        self.hb.new_csv(new_csv_path)
+        self.var_csv.set(new_csv_path)
 
     def sort_by_col(self, col, reverse=False):
         '''
@@ -336,38 +344,55 @@ class GUITools(): #
         self.show_frame.rowconfigure(0, weight=1)
         self.show_frame.columnconfigure(0, weight=1)
 
-    def edit_data(self):
-        edit_window = tk.Toplevel()
-        edit_window.title('Bearbeiten: ' + self.var_csv.get())
-        
-        edit_frame = ttk.Frame(edit_window)
-        edit_frame.pack(fill="both", expand=True)
+    def save_data(self):
+        self.hb.save_csv()
+        messagebox.showinfo('Speichern', f'Die Datenbank wurde in {self.var_csv.get()} gespeichert.')
 
-        ttk.Label(edit_frame, text='Tier:', font=('',12,'bold')).grid(row=0,column=0,columnspan=2, sticky='w', pady=25)
-        cbox_name = ttk.Combobox(edit_frame, width=12, values=[''])
+    def add_ind(self):
+        pass
+
+    def del_ind(self):
+        pass
+
+    def edit_data(self):
+        self.edit_window = tk.Toplevel()
+        self.edit_window.title('Bearbeiten: ' + self.var_csv.get())
+        
+        self.edit_frame = ttk.Frame(self.edit_window)
+        self.edit_frame.pack(fill="both", expand=True)
+
+        ttk.Label(self.edit_frame, text='Tier hinzufügen:', font=('',12,'bold')).grid(row=0,column=0,columnspan=1, sticky='w', pady=25)
+        cbox_name = ttk.Combobox(self.edit_frame, width=12, values=[''])
         cbox_name.set('Name')
-        cbox_name.grid(row=1,column=0)
-        cbox_titel = ttk.Combobox(edit_frame, width=18, values=[''])
+        cbox_name.grid(row=0,column=1)
+        cbox_titel = ttk.Combobox(self.edit_frame, width=18, values=[''])
         cbox_titel.set('Titel')
-        cbox_titel.grid(row=1,column=1)
-        cbox_lom = ttk.Combobox(edit_frame, width=20, values=[''])
+        cbox_titel.grid(row=0,column=2)
+        cbox_lom = ttk.Combobox(self.edit_frame, width=20, values=[''])
         cbox_lom.set('LOM')
-        cbox_lom.grid(row=1,column=2)
-        cbox_geb = ttk.Combobox(edit_frame, width=15, values=[''])
+        cbox_lom.grid(row=0,column=3)
+        cbox_geb = ttk.Combobox(self.edit_frame, width=15, values=[''])
         cbox_geb.set('Geb')
-        cbox_geb.grid(row=1,column=3)
-        cbox_bew = ttk.Combobox(edit_frame, width=5, values=[''])
+        cbox_geb.grid(row=0,column=4)
+        cbox_bew = ttk.Combobox(self.edit_frame, width=5, values=[''])
         cbox_bew.set('Bew')
-        cbox_bew.grid(row=1,column=4)
-        cbox_farbe = ttk.Combobox(edit_frame, width=10, values=[''])
+        cbox_bew.grid(row=1,column=0)
+        cbox_farbe = ttk.Combobox(self.edit_frame, width=10, values=[''])
         cbox_farbe.set('Farbe')
-        cbox_farbe.grid(row=1,column=5)
-        cbox_vater = ttk.Combobox(edit_frame, width=30, values=[''])
+        cbox_farbe.grid(row=1,column=1)
+        cbox_vater = ttk.Combobox(self.edit_frame, width=30, values=[''])
         cbox_vater.set('Vater mit Titel')
-        cbox_vater.grid(row=1,column=6)
-        cbox_muter = ttk.Combobox(edit_frame, width=30, values=[''])
+        cbox_vater.grid(row=1,column=2)
+        cbox_muter = ttk.Combobox(self.edit_frame, width=30, values=[''])
         cbox_muter.set('Mutter mit Titel')
-        cbox_muter.grid(row=1,column=7)
+        cbox_muter.grid(row=1,column=3)
+        ttk.Button(self.edit_frame, text='Hinzufügen', command=self.add_ind).grid(row=1,column=4)
+
+        ttk.Label(self.edit_frame, text='Tier entfernen:', font=('',12,'bold')).grid(row=2,column=0,columnspan=2, sticky='w', pady=100)
+        cbox_lom_del = ttk.Combobox(self.edit_frame, width=20, values=[''])
+        cbox_lom_del.set('LOM')
+        cbox_lom_del.grid(row=2,column=2)
+        ttk.Button(self.edit_frame, text='Entfernen', command=self.del_ind).grid(row=2,column=3)
    
     def gen_ped(self):
         ind = self.entry_name.get()
