@@ -39,13 +39,18 @@ class HerdBuch(): #
 
     def new_csv(self,csv_path):
         self.csv_path = Path(csv_path)
-        self.df = pd.DataFrame({'Name':[''],'Titel':[''],'LOM':[''],'Geb':[''],'Bew':[''],'Farbe':[''],'Vater':[''],'Mutter':['']})
+        self.df = pd.DataFrame({'Name':[''],'Titel':[''],'LOM':[''],'Geb':[''],'Bew':[''],'Farbe':[''], 'Gender':[''],'Vater':[''],'Mutter':['']})
         self.df.to_csv(self.csv_path,';',index=False)
         self.df['NameTitel']=(self.df.Name + ' ' + self.df.Titel).str.strip()
 
     def save_csv(self):
         self.df.to_csv(self.csv_path,';',index=False)
         print(f'DataFrame erfolgreich in {self.csv_path} gespeichert')
+
+    def add_row(self, row: list):
+        row.append(row[0] + ' ' + row[1])
+        self.df.loc[len(self.df)] = row
+        print(f'Eintrag in Datenbank hinzugefügt: \n{row}')
 
 class PedGen(): # 
     '''
@@ -143,7 +148,7 @@ class PedGen(): #
         # Abstand zwischen den Tabellen einstellen
         plt.subplots_adjust(wspace=0) # Hier wird der horizontal Abstand zwischen den Subplots eingestellt
         # Informationen des Individuums ausgeben.
-        fig.suptitle(f'{ind} {self.df[self.df.Name==ind].Titel.values[0]};{8*' '}{self.df[self.df.Name==ind].LOM.values[0]}\ngeb.: {self.df[self.df.Name==ind].Geb.values[0]};{8*' '}Bew.: {self.df[self.df.Name==ind].Bewertung.values[0]};{8*' '}Farbe: {self.df[self.df.Name==ind].Farbe.values[0]};{8*' '}IK = {ik}', fontweight='bold', linespacing=2) # 
+        fig.suptitle(f'{ind} {self.df[self.df.Name==ind].Titel.values[0]};{8*' '}{self.df[self.df.Name==ind].LOM.values[0]}\ngeb.: {self.df[self.df.Name==ind].Geb.values[0]};{8*' '}Bew.: {self.df[self.df.Name==ind].Bew.values[0]};{8*' '}Farbe: {self.df[self.df.Name==ind].Farbe.values[0]};{8*' '}IK = {ik}', fontweight='bold', linespacing=2) # 
         # Anzeigen des Pedigrees
         plt.show() # 
 
@@ -232,7 +237,6 @@ class GUITools(): #
         '''
         Docstring für __init__
         '''
-
         self.hb = hb 
         self.pg = pg
 
@@ -328,7 +332,7 @@ class GUITools(): #
         self.tree.configure(yscrollcommand=scroll_y.set, xscrollcommand=scroll_x.set)
         
         # Spalten konfigurieren
-        for col, width in zip(self.hb.df.columns,[100,150,250,200,100,100,100,250,250]):
+        for col, width in zip(self.hb.df.columns,[100,150,250,100,100,100,100,250,250,250]):
             self.tree.heading(col, text=col, command=lambda c=col: self.sort_by_col(c, False))
             self.tree.column(col, anchor="center", width=width,stretch=False)
 
@@ -349,12 +353,18 @@ class GUITools(): #
         messagebox.showinfo('Speichern', f'Die Datenbank wurde in {self.var_csv.get()} gespeichert.')
 
     def add_ind(self):
-        pass
+        row = [self.entry_name_add.get(), self.cbox_titel_add.get(), self.entry_lom_add.get(), self.entry_geb_add.get(), self.cbox_bew_add.get(), self.cbox_farbe_add.get(),self.cbox_gender_add.get(), self.cbox_vater_add.get(), self.cbox_muter_add.get()]
+        self.hb.add_row(row)
 
     def del_ind(self):
         pass
 
     def edit_data(self):
+        if self.var_csv.get() == 'Noch keine Datenbank geöffnet': 
+            messagebox.showinfo('Keine Datenbank', f'Es wurde noch keine Datenbank geöffnet.')
+            return
+        
+        self.show_data()
         self.edit_window = tk.Toplevel()
         self.edit_window.title('Bearbeiten: ' + self.var_csv.get())
         
@@ -362,37 +372,40 @@ class GUITools(): #
         self.edit_frame.pack(fill="both", expand=True)
 
         ttk.Label(self.edit_frame, text='Tier hinzufügen:', font=('',12,'bold')).grid(row=0,column=0,columnspan=1, sticky='w', pady=25)
-        cbox_name = ttk.Combobox(self.edit_frame, width=12, values=[''])
-        cbox_name.set('Name')
-        cbox_name.grid(row=0,column=1)
-        cbox_titel = ttk.Combobox(self.edit_frame, width=18, values=[''])
-        cbox_titel.set('Titel')
-        cbox_titel.grid(row=0,column=2)
-        cbox_lom = ttk.Combobox(self.edit_frame, width=20, values=[''])
-        cbox_lom.set('LOM')
-        cbox_lom.grid(row=0,column=3)
-        cbox_geb = ttk.Combobox(self.edit_frame, width=15, values=[''])
-        cbox_geb.set('Geb')
-        cbox_geb.grid(row=0,column=4)
-        cbox_bew = ttk.Combobox(self.edit_frame, width=5, values=[''])
-        cbox_bew.set('Bew')
-        cbox_bew.grid(row=1,column=0)
-        cbox_farbe = ttk.Combobox(self.edit_frame, width=10, values=[''])
-        cbox_farbe.set('Farbe')
-        cbox_farbe.grid(row=1,column=1)
-        cbox_vater = ttk.Combobox(self.edit_frame, width=30, values=[''])
-        cbox_vater.set('Vater mit Titel')
-        cbox_vater.grid(row=1,column=2)
-        cbox_muter = ttk.Combobox(self.edit_frame, width=30, values=[''])
-        cbox_muter.set('Mutter mit Titel')
-        cbox_muter.grid(row=1,column=3)
-        ttk.Button(self.edit_frame, text='Hinzufügen', command=self.add_ind).grid(row=1,column=4)
+        ttk.Label(self.edit_frame, text='Name:').grid(row=0,column=1)
+        self.entry_name_add = ttk.Entry(self.edit_frame, width=15, justify='center')
+        self.entry_name_add.grid(row=0,column=2)
+        self.cbox_titel_add = ttk.Combobox(self.edit_frame, width=20, values=sorted(self.hb.df['Titel'].unique()), justify='center')
+        self.cbox_titel_add.set('Titel')
+        self.cbox_titel_add.grid(row=0,column=3)
+        ttk.Label(self.edit_frame, text='LOM:').grid(row=0,column=4)
+        self.entry_lom_add = ttk.Entry(self.edit_frame, width=20, justify='center')
+        self.entry_lom_add.grid(row=0,column=5)
+        ttk.Label(self.edit_frame, text='Geb:').grid(row=1,column=1)
+        self.entry_geb_add = ttk.Entry(self.edit_frame, width=10, justify='center')
+        self.entry_geb_add.grid(row=1,column=2)
+        self.cbox_bew_add = ttk.Combobox(self.edit_frame, width=10, values=sorted(self.hb.df['Bew'].unique(),reverse=True), justify='center')
+        self.cbox_bew_add.set('Bew')
+        self.cbox_bew_add.grid(row=1,column=3)
+        self.cbox_farbe_add = ttk.Combobox(self.edit_frame, width=10, values=sorted(self.hb.df['Farbe'].unique()), justify='center')
+        self.cbox_farbe_add.set('Farbe')
+        self.cbox_farbe_add.grid(row=1,column=4)
+        self.cbox_gender_add = ttk.Combobox(self.edit_frame, width=10, values=['m','w'], justify='center')
+        self.cbox_gender_add.set('Gender')
+        self.cbox_gender_add.grid(row=1,column=5)
+        self.cbox_vater_add = ttk.Combobox(self.edit_frame, width=30, values=sorted(self.hb.df.loc[self.hb.df['Gender'] == 'm', 'NameTitel'].unique()), justify='center',)
+        self.cbox_vater_add.set('Vater mit Titel')
+        self.cbox_vater_add.grid(row=2,column=1,columnspan=2,pady=25)
+        self.cbox_muter_add = ttk.Combobox(self.edit_frame, width=30, values=sorted(self.hb.df.loc[self.hb.df['Gender'] == 'w', 'NameTitel'].unique()), justify='center')
+        self.cbox_muter_add.set('Mutter mit Titel')
+        self.cbox_muter_add.grid(row=2,column=3,columnspan=2)
+        ttk.Button(self.edit_frame, text='Hinzufügen', command=self.add_ind).grid(row=2,column=5)
 
-        ttk.Label(self.edit_frame, text='Tier entfernen:', font=('',12,'bold')).grid(row=2,column=0,columnspan=2, sticky='w', pady=100)
-        cbox_lom_del = ttk.Combobox(self.edit_frame, width=20, values=[''])
-        cbox_lom_del.set('LOM')
-        cbox_lom_del.grid(row=2,column=2)
-        ttk.Button(self.edit_frame, text='Entfernen', command=self.del_ind).grid(row=2,column=3)
+        ttk.Label(self.edit_frame, text='Tier entfernen:', font=('',12,'bold')).grid(row=3,column=0,columnspan=2, sticky='w', pady=75)
+        self.cbox_lom_del = ttk.Combobox(self.edit_frame, width=20, values=[''])
+        self.cbox_lom_del.set('LOM')
+        self.cbox_lom_del.grid(row=3,column=2)
+        ttk.Button(self.edit_frame, text='Entfernen', command=self.del_ind).grid(row=3,column=3)
    
     def gen_ped(self):
         ind = self.entry_name.get()
