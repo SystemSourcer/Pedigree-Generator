@@ -33,29 +33,36 @@ class HerdBuch(): #
 
     def open_csv(self,csv_path):
         self.csv_path = Path(csv_path) # 
-        self.df = pd.read_csv(self.csv_path, sep=';') # CSV - Fle einelsen
+        self.df = pd.read_csv(self.csv_path, sep=';') # read csv file 
         self.df = self.df.fillna('') # Leere Felder mit leerem String füllen
         self.df['NameTitel']=(self.df.Name + ' ' + self.df.Titel).str.strip()
+        print(f'\033[36mDatenbank {self.csv_path} geöffnet.\033[0m')
 
     def new_csv(self,csv_path):
         self.csv_path = Path(csv_path)
-        self.df = pd.DataFrame({'Name':[''],'Titel':[''],'LOM':[''],'Geb':[''],'Bew':[''],'Farbe':[''], 'Gender':[''],'Vater':[''],'Mutter':['']})
+        self.df = pd.DataFrame({'Name':['Tier'],'Titel':['von Hof 1'],'LOM':['DE08'],'Geb':['01.01.2000'],'Bew':['8/8/8'],'Farbe':['schwarz'], 'Gender':['m'],'Vater':['Vater von Hof 2'],'Mutter':['Mutter von Hof 1']})
         self.df.to_csv(self.csv_path,';',index=False)
         self.df['NameTitel']=(self.df.Name + ' ' + self.df.Titel).str.strip()
+        print(f'\033[36mNeue Datenbank {self.csv_path} erstellt.\033[0m')
 
     def save_csv(self):
         self.df.iloc[:,:-1].to_csv(self.csv_path,';',index=False)
-        print(f'DataFrame erfolgreich in {self.csv_path} gespeichert')
-
+        print(f'\033[32mDataFrame erfolgreich in {self.csv_path} gespeichert\033[0m')
+        
     def add_row(self, row: list):
         row.append(row[0] + ' ' + row[1])
         self.df.loc[len(self.df)] = row
         self.df.sort_values(by='Name')
-        print(f'Eintrag in Datenbank hinzugefügt: \n{row}')
+        print(f'\033[32mEintrag in Datenbank hinzugefügt: \n{row}\033[0m')
 
     def del_row(self,lom):
         self.df = self.df[self.df['LOM'] != lom].sort_values(by='Name').reset_index(drop=True)
-        print(f'Alle Einträge mit LOM \n{lom} aus datenbank entfernt')
+        print(f'\033[31mAlle Einträge mit LOM \n{lom} aus datenbank entfernt\033[0m')
+
+    def check_save(self):
+        df_saved = pd.read_csv(self.csv_path, sep=';') # CSV - read csv file 
+        if self.df.iloc[:,:-1].equals(df_saved): return True
+        else: return False
 
 class PedGen(): # 
     '''
@@ -248,6 +255,7 @@ class GUITools(): #
         self.window = tk.Tk()
         self.window.title('Pedigree Generator')
         self.window.geometry('678x345') # Width x Height
+        self.window.protocol("WM_DELETE_WINDOW", self.on_close)
 
         self.menu = tk.Menu(self.window)
         self.window.config(menu=self.menu)
@@ -256,7 +264,7 @@ class GUITools(): #
         self.filemenu.add_command(label='Neue Datenbank erstellen', command=self.new_data)
         self.filemenu.add_command(label='Datenbank Öffnen', command=self.open_csv)
         self.filemenu.add_separator()
-        self.filemenu.add_command(label='Beenden', command=self.window.quit)
+        self.filemenu.add_command(label='Beenden', command=self.on_close)
         helpmenu = tk.Menu(self.menu)
         self.menu.add_cascade(label='Help', menu=helpmenu)
         helpmenu.add_command(label='About')
@@ -294,16 +302,21 @@ class GUITools(): #
         self.window.mainloop() 
     
     def open_csv(self):
+        self.save_warning()
         csv_path = Path(filedialog.askopenfilename(title='CSV-Datei als Datenbank auswählen', filetypes=[('CSV files', '*.csv')])) # CSV - File über GUI abfragen
+        if not Path(csv_path).is_file(): return # in case of closing filedialog or selecting a directory
         self.hb.open_csv(csv_path)
         self.var_csv.set(csv_path)
+        if self.edit_window is not None and self.edit_window.winfo_exists(): self.update_show()
 
     def new_data(self):
-        new_csv_file = filedialog.asksaveasfile(filetypes=[('CSV-File','*.csv')],defaultextension='.csv',title='Neue Datenbank speichern als:')
+        self.save_warning()
+        new_csv_file = filedialog.asksaveasfile(title='Neue Datenbank speichern als:', filetypes=[('CSV-File','*.csv')], defaultextension='.csv',)
         new_csv_path = new_csv_file.name
         new_csv_file.close()
         self.hb.new_csv(new_csv_path)
         self.var_csv.set(new_csv_path)
+        if self.edit_window is not None and self.edit_window.winfo_exists(): self.update_show()
 
     def update_show(self):
         '''
@@ -316,7 +329,6 @@ class GUITools(): #
         # insert data
         for _, row in self.hb.df.iterrows():
             self.tree.insert("", "end", values=list(row))
-
 
     def sort_by_col(self, col, reverse=False):
         '''
@@ -394,7 +406,6 @@ class GUITools(): #
         self.edit_window.destroy()
         self.update_show()
 
-
     def edit_data(self):
         if self.var_csv.get() == 'Noch keine Datenbank geöffnet': 
             messagebox.showinfo('Keine Datenbank', f'Es wurde noch keine Datenbank geöffnet.')
@@ -445,6 +456,17 @@ class GUITools(): #
         self.cbox_lom_del.grid(row=3,column=2)
         ttk.Button(self.edit_frame, text='Entfernen', command=self.del_ind).grid(row=3,column=3)
    
+    def save_warning(self):
+        if self.var_csv.get() == 'Noch keine Datenbank geöffnet': return
+        if self.hb.check_save(): return
+        ans = messagebox.askquestion('Ungespeicherte Änderungen','Es liegen ungespeicherte änderunen in derDatenbank vor. Wollen sie diese noch Speichern?')
+        if ans == 'no': return
+        else: self.save_data()
+
+    def on_close(self):
+        self.save_warning()
+        self.window.destroy()
+
     def gen_ped(self):
         if self.var_csv.get() == 'Noch keine Datenbank geöffnet': 
             messagebox.showinfo('Keine Datenbank', f'Es wurde noch keine Datenbank geöffnet.')
