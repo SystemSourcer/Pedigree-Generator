@@ -44,13 +44,18 @@ class HerdBuch(): #
         self.df['NameTitel']=(self.df.Name + ' ' + self.df.Titel).str.strip()
 
     def save_csv(self):
-        self.df.to_csv(self.csv_path,';',index=False)
+        self.df.iloc[:,:-1].to_csv(self.csv_path,';',index=False)
         print(f'DataFrame erfolgreich in {self.csv_path} gespeichert')
 
     def add_row(self, row: list):
         row.append(row[0] + ' ' + row[1])
         self.df.loc[len(self.df)] = row
+        self.df.sort_values(by='Name')
         print(f'Eintrag in Datenbank hinzugefügt: \n{row}')
+
+    def del_row(self,lom):
+        self.df = self.df[self.df['LOM'] != lom].sort_values(by='Name').reset_index(drop=True)
+        print(f'Alle Einträge mit LOM \n{lom} aus datenbank entfernt')
 
 class PedGen(): # 
     '''
@@ -256,6 +261,9 @@ class GUITools(): #
         self.menu.add_cascade(label='Help', menu=helpmenu)
         helpmenu.add_command(label='About')
 
+        self.show_window = None
+        self.edit_window = None
+
         self.var_csv = tk.StringVar(value='Noch keine Datenbank geöffnet')
     
         ttk.Label(self.window, text='Datenbank:', font=('',12,'bold')).grid(row=0,column=0,columnspan=2, sticky='w', pady=25)
@@ -297,11 +305,24 @@ class GUITools(): #
         self.hb.new_csv(new_csv_path)
         self.var_csv.set(new_csv_path)
 
+    def update_show(self):
+        '''
+        Docstring für update_show
+        '''
+        # delete data
+        for k in self.tree.get_children(''):
+            self.tree.delete(k)
+
+        # insert data
+        for _, row in self.hb.df.iterrows():
+            self.tree.insert("", "end", values=list(row))
+
+
     def sort_by_col(self, col, reverse=False):
         '''
         Sort Treeview by given column sortieren.
         '''
-        daten = [(self.tree.set(k, col), k) for k in self.tree.get_children("")] # get all items + values in this col (value_in_coll, item_ID)
+        daten = [(self.tree.set(k, col), k) for k in self.tree.get_children('')] # get all items + values in this col (value_in_coll, item_ID)
 
         
         try: daten.sort(key=lambda t: float(t[0]), reverse=reverse) # sort numerical 
@@ -317,6 +338,12 @@ class GUITools(): #
         '''
         Docstring für show_data
         '''
+        if self.var_csv.get() == 'Noch keine Datenbank geöffnet': 
+            messagebox.showinfo('Keine Datenbank', f'Es wurde noch keine Datenbank geöffnet.')
+            return
+        
+        if self.show_window is not None and self.show_window.winfo_exists(): return # no double windows
+
         self.show_window = tk.Toplevel()
         self.show_window.title('Datenbank')
 
@@ -336,7 +363,7 @@ class GUITools(): #
             self.tree.heading(col, text=col, command=lambda c=col: self.sort_by_col(c, False))
             self.tree.column(col, anchor="center", width=width,stretch=False)
 
-        # Daten einfügen
+        # insert data
         for _, row in self.hb.df.iterrows():
             self.tree.insert("", "end", values=list(row))
 
@@ -349,15 +376,24 @@ class GUITools(): #
         self.show_frame.columnconfigure(0, weight=1)
 
     def save_data(self):
+        if self.var_csv.get() == 'Noch keine Datenbank geöffnet': 
+            messagebox.showinfo('Keine Datenbank', f'Es wurde noch keine Datenbank geöffnet.')
+            return
+        
         self.hb.save_csv()
         messagebox.showinfo('Speichern', f'Die Datenbank wurde in {self.var_csv.get()} gespeichert.')
 
     def add_ind(self):
         row = [self.entry_name_add.get(), self.cbox_titel_add.get(), self.entry_lom_add.get(), self.entry_geb_add.get(), self.cbox_bew_add.get(), self.cbox_farbe_add.get(),self.cbox_gender_add.get(), self.cbox_vater_add.get(), self.cbox_muter_add.get()]
         self.hb.add_row(row)
+        self.edit_window.destroy()
+        self.update_show()
 
     def del_ind(self):
-        pass
+        self.hb.del_row(self.cbox_lom_del.get())
+        self.edit_window.destroy()
+        self.update_show()
+
 
     def edit_data(self):
         if self.var_csv.get() == 'Noch keine Datenbank geöffnet': 
@@ -365,6 +401,8 @@ class GUITools(): #
             return
         
         self.show_data()
+        if self.edit_window is not None and self.edit_window.winfo_exists(): return # no double windows
+
         self.edit_window = tk.Toplevel()
         self.edit_window.title('Bearbeiten: ' + self.var_csv.get())
         
@@ -402,12 +440,16 @@ class GUITools(): #
         ttk.Button(self.edit_frame, text='Hinzufügen', command=self.add_ind).grid(row=2,column=5)
 
         ttk.Label(self.edit_frame, text='Tier entfernen:', font=('',12,'bold')).grid(row=3,column=0,columnspan=2, sticky='w', pady=75)
-        self.cbox_lom_del = ttk.Combobox(self.edit_frame, width=20, values=[''])
+        self.cbox_lom_del = ttk.Combobox(self.edit_frame, width=20, values=sorted(self.hb.df['LOM'].unique()))
         self.cbox_lom_del.set('LOM')
         self.cbox_lom_del.grid(row=3,column=2)
         ttk.Button(self.edit_frame, text='Entfernen', command=self.del_ind).grid(row=3,column=3)
    
     def gen_ped(self):
+        if self.var_csv.get() == 'Noch keine Datenbank geöffnet': 
+            messagebox.showinfo('Keine Datenbank', f'Es wurde noch keine Datenbank geöffnet.')
+            return
+        
         ind = self.entry_name.get()
         ngen =int(self.sb_ngen.get()) # ngen = user input
         self.pg.df = self.hb.df
@@ -415,6 +457,11 @@ class GUITools(): #
         self.pg.plot_pedigree(ind, gen, ik, ped) # 
    
     def calc_inb(self): 
+        if self.var_csv.get() == 'Noch keine Datenbank geöffnet': 
+            messagebox.showinfo('Keine Datenbank', f'Es wurde noch keine Datenbank geöffnet.')
+            return
+        
+
         elter1 = self.entry_elter1.get()
         elter2 = self.entry_elter2.get()
         self.pg.df = self.hb.df
