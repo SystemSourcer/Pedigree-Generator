@@ -61,6 +61,7 @@ class HerdBuch(): #
 
     def check_save(self):
         df_saved = pd.read_csv(self.csv_path, sep=';') # CSV - read csv file 
+        df_saved = df_saved.fillna('')
         if self.df.iloc[:,:-1].equals(df_saved): return True
         else: return False
 
@@ -307,7 +308,7 @@ class GUITools(): #
         if not Path(csv_path).is_file(): return # in case of closing filedialog or selecting a directory
         self.hb.open_csv(csv_path)
         self.var_csv.set(csv_path)
-        if self.edit_window is not None and self.edit_window.winfo_exists(): self.update_show()
+        if self.show_window is not None and self.show_window.winfo_exists(): self.update_show()
 
     def new_data(self):
         self.save_warning()
@@ -316,7 +317,7 @@ class GUITools(): #
         new_csv_file.close()
         self.hb.new_csv(new_csv_path)
         self.var_csv.set(new_csv_path)
-        if self.edit_window is not None and self.edit_window.winfo_exists(): self.update_show()
+        if self.show_window is not None and self.show_window.winfo_exists(): self.update_show()
 
     def update_show(self):
         '''
@@ -459,7 +460,7 @@ class GUITools(): #
     def save_warning(self):
         if self.var_csv.get() == 'Noch keine Datenbank geöffnet': return
         if self.hb.check_save(): return
-        ans = messagebox.askquestion('Ungespeicherte Änderungen','Es liegen ungespeicherte änderunen in derDatenbank vor. Wollen sie diese noch Speichern?')
+        ans = messagebox.askquestion('Ungespeicherte Änderungen','Es liegen ungespeicherte Änderunen in der Datenbank vor. Wollen sie diese noch Speichern?')
         if ans == 'no': return
         else: self.save_data()
 
