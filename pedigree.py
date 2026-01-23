@@ -14,12 +14,11 @@ def main(): #
     The main function.
     Starts the GUI and connects it to the backend
     '''
-    hb = HerdBuch()
-    pg = PedGen()
-    gui = GUITools(hb,pg)
+    hb = HerdBuch() # 
+    pg = PedGen() # 
+    gui = GUITools(hb,pg) # 
 
 # Objects
-
 class HerdBuch(): # 
     '''
     Docstring für HBEdit
@@ -492,8 +491,10 @@ class GUITools(): #
         print(f'IK = {ik}')
         messagebox.showinfo('IK', f'IK = {ik}')  
         
-   
-
 # Global
 if __name__ == '__main__': # 
     main() # 
+
+
+
+# This is the last line of the Code :)
