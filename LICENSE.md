@@ -1,4 +1,4 @@
-# LRU (limited right of use )License
+# LRU - License (limited right of use )
 Copyright (c) 2026 SystemSourcer
 
 ## License Grant:  
