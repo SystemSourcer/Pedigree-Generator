@@ -61,7 +61,7 @@ Dieses Projekt bietet ein Werkzeug zur Erstellung und Verwaltung von Stammbäume
 
 ## Lizenz
 
-Dieses Projekt steht unter der LRU-License (limited right of use). Siehe die [LICENSE](LICENSE) Datei für Details.
+Dieses Projekt steht unter der LRU-License (limited right of use). Siehe die [LICENSE](LICENSE.md) Datei für Details.
 
 ## Kontakt
 
