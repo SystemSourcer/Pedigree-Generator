@@ -54,9 +54,13 @@ class HerdBuch(): #
         self.df.sort_values(by='Name')
         print(f'\033[32mEintrag in Datenbank hinzugefügt: \n{row}\033[0m')
 
-    def del_row(self,lom):
+    def del_row_by_lom(self,lom):
         self.df = self.df[self.df['LOM'] != lom].sort_values(by='Name').reset_index(drop=True)
         print(f'\033[31mAlle Einträge mit LOM \n{lom} aus datenbank entfernt\033[0m')
+
+    def del_row_by_nt(self,nt):
+        self.df = self.df[self.df['NameTitel'] != nt].sort_values(by='Name').reset_index(drop=True)
+        print(f'\033[31mAlle Einträge mit LOM \n{nt} aus datenbank entfernt\033[0m')
 
     def check_save(self):
         df_saved = pd.read_csv(self.csv_path, sep=';') # CSV - read csv file 
@@ -395,31 +399,10 @@ class GUITools(): #
         self.hb.save_csv()
         messagebox.showinfo('Speichern', f'Die Datenbank wurde in {self.var_csv.get()} gespeichert.')
 
-    def add_ind(self):
-        row = [self.entry_name_add.get(), self.cbox_titel_add.get(), self.entry_lom_add.get(), self.entry_geb_add.get(), self.cbox_bew_add.get(), self.cbox_farbe_add.get(),self.cbox_gender_add.get(), self.cbox_vater_add.get(), self.cbox_muter_add.get()]
-        self.hb.add_row(row)
-        self.edit_window.destroy()
-        self.update_show()
-
-    def del_ind(self):
-        self.hb.del_row(self.cbox_lom_del.get())
-        self.edit_window.destroy()
-        self.update_show()
-
-    def edit_data(self):
-        if self.var_csv.get() == 'Noch keine Datenbank geöffnet': 
-            messagebox.showinfo('Keine Datenbank', f'Es wurde noch keine Datenbank geöffnet.')
-            return
-        
-        self.show_data()
-        if self.edit_window is not None and self.edit_window.winfo_exists(): return # no double windows
-
-        self.edit_window = tk.Toplevel()
-        self.edit_window.title('Bearbeiten: ' + self.var_csv.get())
-        
-        self.edit_frame = ttk.Frame(self.edit_window)
-        self.edit_frame.pack(fill="both", expand=True)
-
+    def load_add_ind(self):
+        self.add_btn.destroy()
+        self.change_btn.destroy()
+        self.del_btn.destroy()
         ttk.Label(self.edit_frame, text='Tier hinzufügen:', font=('',12,'bold')).grid(row=0,column=0,columnspan=1, sticky='w', pady=25)
         ttk.Label(self.edit_frame, text='Name:').grid(row=0,column=1)
         self.entry_name_add = ttk.Entry(self.edit_frame, width=15, justify='center')
@@ -450,11 +433,142 @@ class GUITools(): #
         self.cbox_muter_add.grid(row=2,column=3,columnspan=2)
         ttk.Button(self.edit_frame, text='Hinzufügen', command=self.add_ind).grid(row=2,column=5)
 
-        ttk.Label(self.edit_frame, text='Tier entfernen:', font=('',12,'bold')).grid(row=3,column=0,columnspan=2, sticky='w', pady=75)
+    def load_change_ind(self):
+        self.add_btn.destroy()
+        self.change_btn.destroy()
+        self.del_btn.destroy()
+        ttk.Label(self.edit_frame, text='Tier ändern:', font=('',12,'bold')).grid(row=0,column=0,columnspan=2, sticky='w', pady=25)
+        self.cbox_lom_change = ttk.Combobox(self.edit_frame, width=20, values=sorted(self.hb.df['LOM'].unique()))
+        self.cbox_lom_change.set('LOM')
+        self.cbox_lom_change.grid(row=0,column=2)
+        ttk.Button(self.edit_frame, text='Holen', command=self.get_ind_by_lom).grid(row=0,column=3)
+        self.cbox_nt_change = ttk.Combobox(self.edit_frame, width=20, values=sorted(self.hb.df['NameTitel'].unique()))
+        self.cbox_nt_change.set('NameTitel')
+        self.cbox_nt_change.grid(row=0,column=4)
+        ttk.Button(self.edit_frame, text='Holen', command=self.get_ind_by_nt).grid(row=0,column=5)
+
+    def load_del_ind(self):
+        self.add_btn.destroy()
+        self.change_btn.destroy()
+        self.del_btn.destroy()
+        ttk.Label(self.edit_frame, text='Tier entfernen:', font=('',12,'bold')).grid(row=0,column=0,columnspan=2, sticky='w', pady=25)
         self.cbox_lom_del = ttk.Combobox(self.edit_frame, width=20, values=sorted(self.hb.df['LOM'].unique()))
         self.cbox_lom_del.set('LOM')
-        self.cbox_lom_del.grid(row=3,column=2)
-        ttk.Button(self.edit_frame, text='Entfernen', command=self.del_ind).grid(row=3,column=3)
+        self.cbox_lom_del.grid(row=0,column=2)
+        ttk.Button(self.edit_frame, text='Entfernen', command=self.del_ind_by_lom).grid(row=0,column=3)
+
+    def add_ind(self):
+        row = [self.entry_name_add.get(), self.cbox_titel_add.get(), self.entry_lom_add.get(), self.entry_geb_add.get(), self.cbox_bew_add.get(), self.cbox_farbe_add.get(),self.cbox_gender_add.get(), self.cbox_vater_add.get(), self.cbox_muter_add.get()]
+        self.hb.add_row(row)
+        self.edit_window.destroy()
+        self.update_show()
+
+    def get_ind_by_lom(self):
+        ind_by_lom = self.hb.df[self.hb.df['LOM']==self.cbox_lom_change.get()].iloc[0].to_dict()
+        self.entry_name_change = ttk.Entry(self.edit_frame, width=15, justify='center')    
+        self.entry_name_change.insert(0,ind_by_lom['Name'])
+        self.entry_name_change.grid(row=1,column=0)
+        self.cbox_titel_change = ttk.Combobox(self.edit_frame, width=20, values=sorted(self.hb.df['Titel'].unique()), justify='center')
+        self.cbox_titel_change.set(ind_by_lom['Titel'])
+        self.cbox_titel_change.grid(row=1,column=1)
+        self.entry_lom_change = ttk.Entry(self.edit_frame, width=20, justify='center')
+        self.entry_lom_change.insert(0,ind_by_lom['LOM'])
+        self.entry_lom_change.grid(row=1,column=2)
+        self.entry_geb_change = ttk.Entry(self.edit_frame, width=10, justify='center')
+        self.entry_geb_change.insert(0,ind_by_lom['Geb'])
+        self.entry_geb_change.grid(row=1,column=3)
+        self.cbox_bew_change = ttk.Combobox(self.edit_frame, width=10, values=sorted(self.hb.df['Bew'].unique(),reverse=True), justify='center')
+        self.cbox_bew_change.set(ind_by_lom['Bew'])
+        self.cbox_bew_change.grid(row=1,column=4)
+        self.cbox_farbe_change = ttk.Combobox(self.edit_frame, width=10, values=sorted(self.hb.df['Farbe'].unique()), justify='center')
+        self.cbox_farbe_change.set(ind_by_lom['Farbe'])
+        self.cbox_farbe_change.grid(row=1,column=5)
+        self.cbox_gender_change = ttk.Combobox(self.edit_frame, width=10, values=['m','w'], justify='center')
+        self.cbox_gender_change.set(ind_by_lom['Gender'])
+        self.cbox_gender_change.grid(row=2,column=0)
+        self.cbox_vater_change = ttk.Combobox(self.edit_frame, width=30, values=sorted(self.hb.df.loc[self.hb.df['Gender'] == 'm', 'NameTitel'].unique()), justify='center',)
+        self.cbox_vater_change.set(ind_by_lom['Vater'])
+        self.cbox_vater_change.grid(row=2,column=1,columnspan=2,pady=25)
+        self.cbox_muter_change = ttk.Combobox(self.edit_frame, width=30, values=sorted(self.hb.df.loc[self.hb.df['Gender'] == 'w', 'NameTitel'].unique()), justify='center')
+        self.cbox_muter_change.set(ind_by_lom['Mutter'])
+        self.cbox_muter_change.grid(row=2,column=3,columnspan=2)
+        ttk.Button(self.edit_frame, text='Ändern', command=self.change_ind_by_lom).grid(row=5,column=5)
+
+    def get_ind_by_nt(self):
+        ind_by_nt = self.hb.df[self.hb.df['NameTitel']==self.cbox_nt_change.get()].iloc[0].to_dict()
+        self.entry_name_change = ttk.Entry(self.edit_frame, width=15, justify='center')    
+        self.entry_name_change.insert(0,ind_by_nt['Name'])
+        self.entry_name_change.grid(row=1,column=0)
+        self.cbox_titel_change = ttk.Combobox(self.edit_frame, width=20, values=sorted(self.hb.df['Titel'].unique()), justify='center')
+        self.cbox_titel_change.set(ind_by_nt['Titel'])
+        self.cbox_titel_change.grid(row=1,column=1)
+        self.entry_lom_change = ttk.Entry(self.edit_frame, width=20, justify='center')
+        self.entry_lom_change.insert(0,ind_by_nt['LOM'])
+        self.entry_lom_change.grid(row=1,column=2)
+        self.entry_geb_change = ttk.Entry(self.edit_frame, width=10, justify='center')
+        self.entry_geb_change.insert(0,ind_by_nt['Geb'])
+        self.entry_geb_change.grid(row=1,column=3)
+        self.cbox_bew_change = ttk.Combobox(self.edit_frame, width=10, values=sorted(self.hb.df['Bew'].unique(),reverse=True), justify='center')
+        self.cbox_bew_change.set(ind_by_nt['Bew'])
+        self.cbox_bew_change.grid(row=1,column=4)
+        self.cbox_farbe_change = ttk.Combobox(self.edit_frame, width=10, values=sorted(self.hb.df['Farbe'].unique()), justify='center')
+        self.cbox_farbe_change.set(ind_by_nt['Farbe'])
+        self.cbox_farbe_change.grid(row=1,column=5)
+        self.cbox_gender_change = ttk.Combobox(self.edit_frame, width=10, values=['m','w'], justify='center')
+        self.cbox_gender_change.set(ind_by_nt['Gender'])
+        self.cbox_gender_change.grid(row=2,column=0)
+        self.cbox_vater_change = ttk.Combobox(self.edit_frame, width=30, values=sorted(self.hb.df.loc[self.hb.df['Gender'] == 'm', 'NameTitel'].unique()), justify='center',)
+        self.cbox_vater_change.set(ind_by_nt['Vater'])
+        self.cbox_vater_change.grid(row=2,column=1,columnspan=2,pady=25)
+        self.cbox_muter_change = ttk.Combobox(self.edit_frame, width=30, values=sorted(self.hb.df.loc[self.hb.df['Gender'] == 'w', 'NameTitel'].unique()), justify='center')
+        self.cbox_muter_change.set(ind_by_nt['Mutter'])
+        self.cbox_muter_change.grid(row=2,column=3,columnspan=2)
+        ttk.Button(self.edit_frame, text='Ändern', command=self.change_ind_by_nt).grid(row=5,column=5)
+
+    def change_ind_by_lom(self):
+        self.hb.del_row_by_lom(self.cbox_lom_change.get())
+        row = [self.entry_name_change.get(), self.cbox_titel_change.get(), self.entry_lom_change.get(), self.entry_geb_change.get(), self.cbox_bew_change.get(), self.cbox_farbe_change.get(),self.cbox_gender_change.get(), self.cbox_vater_change.get(), self.cbox_muter_change.get()]
+        self.hb.add_row(row)
+        self.edit_window.destroy()
+        self.update_show()
+
+    def change_ind_by_nt(self):
+        self.hb.del_row_by_nt(self.cbox_nt_change.get())
+        row = [self.entry_name_change.get(), self.cbox_titel_change.get(), self.entry_lom_change.get(), self.entry_geb_change.get(), self.cbox_bew_change.get(), self.cbox_farbe_change.get(),self.cbox_gender_change.get(), self.cbox_vater_change.get(), self.cbox_muter_change.get()]
+        self.hb.add_row(row)
+        self.edit_window.destroy()
+        self.update_show()
+
+    def del_ind_by_lom(self):
+        self.hb.del_row_by_lom(self.cbox_lom_del.get())
+        self.edit_window.destroy()
+        self.update_show()
+
+    def del_ind_by_nt(self): # bisher unbenutz
+        self.hb.del_row_by_nt(self.cbox_nt_del.get())
+        self.edit_window.destroy()
+        self.update_show()
+
+    def edit_data(self):
+        if self.var_csv.get() == 'Noch keine Datenbank geöffnet': 
+            messagebox.showinfo('Keine Datenbank', f'Es wurde noch keine Datenbank geöffnet.')
+            return
+        
+        self.show_data()
+        if self.edit_window is not None and self.edit_window.winfo_exists(): return # no double windows
+
+        self.edit_window = tk.Toplevel()
+        self.edit_window.title('Bearbeiten: ' + self.var_csv.get())
+        
+        self.edit_frame = ttk.Frame(self.edit_window)
+        self.edit_frame.pack(fill="both", expand=True)
+
+        self.add_btn = ttk.Button(self.edit_frame, text='Neues Tier hinzufügen', command=self.load_add_ind)
+        self.add_btn.grid(row=0,column=0)
+        self.change_btn = ttk.Button(self.edit_frame, text='Vorhandenes Tier ändern', command=self.load_change_ind)
+        self.change_btn.grid(row=1,column=0)
+        self.del_btn = ttk.Button(self.edit_frame, text='Vorhandenes Tier entfernen', command=self.load_del_ind)
+        self.del_btn.grid(row=2,column=0)
    
     def save_warning(self):
         if self.var_csv.get() == 'Noch keine Datenbank geöffnet': return
