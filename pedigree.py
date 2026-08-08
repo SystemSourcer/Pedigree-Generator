@@ -51,7 +51,7 @@ class HerdBuch(): #
     def add_row(self, row: list):
         row.append(row[0] + ' ' + row[1])
         self.df.loc[len(self.df)] = row
-        self.df.sort_values(by='Name')
+        self.df = self.df.sort_values(by='Name').reset_index(drop=True)
         print(f'\033[32mEintrag in Datenbank hinzugefügt: \n{row}\033[0m')
 
     def del_row_by_lom(self,lom):
@@ -456,6 +456,10 @@ class GUITools(): #
         self.cbox_lom_del.set('LOM')
         self.cbox_lom_del.grid(row=0,column=2)
         ttk.Button(self.edit_frame, text='Entfernen', command=self.del_ind_by_lom).grid(row=0,column=3)
+        self.cbox_nt_del = ttk.Combobox(self.edit_frame, width=20, values=sorted(self.hb.df['NameTitel'].unique()))
+        self.cbox_nt_del.set('Name mit Titel')
+        self.cbox_nt_del.grid(row=1,column=2)
+        ttk.Button(self.edit_frame, text='Entfernen', command=self.del_ind_by_nt).grid(row=1,column=3)
 
     def add_ind(self):
         row = [self.entry_name_add.get(), self.cbox_titel_add.get(), self.entry_lom_add.get(), self.entry_geb_add.get(), self.cbox_bew_add.get(), self.cbox_farbe_add.get(),self.cbox_gender_add.get(), self.cbox_vater_add.get(), self.cbox_muter_add.get()]
