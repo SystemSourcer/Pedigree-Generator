@@ -1,5 +1,4 @@
 # Imports
-import sys # 
 import numpy as np # 
 import pandas as pd # 
 import tkinter as tk # 
@@ -148,7 +147,6 @@ class PedGen(): #
         '''
         if gen == 0: # Fehlermeldung wenn erste Generation, undmait auch kein Pedigree ertsellt werden kann.
             messagebox.showerror('Fehler','Bereits die erste Generation konnte nicht vollstänig im Datensatz gefunden werden. Erstellung eines Pedigrees daher nicht möglich.') # 
-            sys.exit() #
 
         print(f'\033[36m{gen} Generationen des Peigrees von {ind} werden geplottet.\033[0m')
         fig, ax = plt.subplots(1, gen, figsize=(16, 9)) # Eine Zeile, gen Spalten
